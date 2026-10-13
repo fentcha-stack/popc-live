@@ -45,7 +45,13 @@ header{
 }
 .brand h1{margin:0;font-size:15px;font-weight:800;letter-spacing:.3px;line-height:1.1}
 .brand .sub{font-size:11.5px;color:var(--dim);margin-top:1px}
-.live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--dim);white-space:nowrap}
+.live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--dim);white-space:nowrap;
+  background:none;border:0;padding:4px 2px;font-family:inherit;cursor:pointer}
+#diag{background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:2px 0 9px;font-size:11.5px}
+#diag b{display:block;color:var(--dim2);font-size:9.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-top:7px}
+#diag b:first-child{margin-top:0}
+#diag .dv{color:var(--txt);word-break:break-all;line-height:1.4;margin-top:2px}
+#diag .dh{color:var(--dim2);margin-top:10px;line-height:1.5;border-top:1px solid var(--line);padding-top:8px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--up);box-shadow:0 0 0 0 rgba(54,201,138,.6);animation:pulse 2.4s infinite}
 .dot.off{background:var(--dim2);animation:none;box-shadow:none}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(54,201,138,.55)}70%{box-shadow:0 0 0 8px rgba(54,201,138,0)}100%{box-shadow:0 0 0 0 rgba(54,201,138,0)}}
@@ -198,8 +204,9 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
       <h1 id="hTitre">PEARL OF PACIFIC CONTEST</h1>
       <div class="sub" id="hDates">—</div>
     </div>
-    <div class="live"><span class="dot" id="hDot"></span><span id="hMaj">chargement…</span></div>
+    <button class="live" id="hLive" title="Détails techniques"><span class="dot" id="hDot"></span><span id="hMaj">chargement…</span></button>
   </div>
+  <div id="diag" hidden></div>
   <nav id="nav">
     <button data-v="live" class="on">En direct</button>
     <button data-v="wod">Le WOD</button>
@@ -246,11 +253,27 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
 var SRC      = "data.json";
 var PERIODE  = 20000;
 
-/* permet de tester une autre source sans modifier le fichier : page.html?src=... */
+/* --- choix automatique de la source ---------------------------------
+   Sur GitHub Pages, le site est reconstruit a chaque envoi : le fichier
+   data.json servi par le site peut avoir plusieurs minutes de retard.
+   On lit donc directement le fichier du depot (raw.githubusercontent),
+   qui est mis a jour immediatement, en deduisant le compte et le depot
+   de l'adresse de la page. Si cette lecture echoue, on retombe tout
+   seul sur le data.json pose a cote de la page.
+   -------------------------------------------------------------------- */
+var SRC_SECOURS = "data.json";
 (function(){
-  var m = location.search.match(/[?&]src=([^&]+)/);
-  if(m) SRC = decodeURIComponent(m[1]);
+  var m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  if(m){
+    var compte = m[1];
+    var seg = location.pathname.split("/").filter(Boolean);
+    var depot = seg.length ? seg[0] : compte + ".github.io";
+    SRC = "https://raw.githubusercontent.com/"+compte+"/"+depot+"/main/data.json";
+  }
+  var q = location.search.match(/[?&]src=([^&]+)/);      /* forcer une source */
+  if(q){ SRC = decodeURIComponent(q[1]); SRC_SECOURS = null; }
 })();
+var SRC_PREF = SRC;   /* source la plus rapide ; on y revient regulierement */
 
 var D = null;                 // dernier jeu de donnees valide
 var vue = "live";
@@ -525,20 +548,51 @@ function majEtat(ok){
   else  { dot.className="dot off"; txt.textContent = D ? "hors ligne" : "indisponible"; }
 }
 
+var diag = {src:"", essais:0, recus:0, dernier:"—", derniereMaj:"—", erreur:"", inchange:0};
+
 function charger(manuel){
-  fetch(SRC+"?t="+Date.now(),{cache:"no-store"})
-    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+  /* si on avait bascule sur le secours, on retente la source rapide de temps en temps */
+  if(SRC !== SRC_PREF && diag.essais % 10 === 0) SRC = SRC_PREF;
+  var url = SRC + (SRC.indexOf("?")<0?"?":"&") + "t=" + Date.now();
+  diag.essais++; diag.src = SRC;
+  fetch(url,{cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
     .then(function(j){
-      if(!j || !j.ecrans) throw 0;
-      D=j; echecs=0; majEtat(true); dessiner();
+      if(!j || !j.ecrans) throw new Error("fichier illisible");
+      diag.recus++; diag.erreur="";
+      diag.dernier = new Date().toLocaleTimeString("fr-FR");
+      if(D && D.maj === j.maj) diag.inchange++; else diag.inchange = 0;
+      diag.derniereMaj = j.maj || "—";
+      D=j; echecs=0; majEtat(true); dessiner(); majDiag();
       if(manuel) toast("Classements à jour");
     })
-    .catch(function(){
-      echecs++; majEtat(false);
+    .catch(function(e){
+      diag.erreur = (e && e.message) ? e.message : "indisponible";
+      /* la source directe a echoue : on bascule une fois sur le fichier du site */
+      if(SRC_SECOURS && SRC !== SRC_SECOURS){
+        SRC = SRC_SECOURS;
+        return charger(manuel);
+      }
+      echecs++; majEtat(false); majDiag();
       if(!D) el("v-"+vue).innerHTML =
         '<div class="card"><div class="empty">En attente des premiers résultats…</div></div>';
       if(manuel) toast("Connexion impossible");
     });
+}
+
+/* ---- panneau de diagnostic : appui long ou clic sur l'indicateur ---- */
+function majDiag(){
+  var p = el("diag"); if(!p || p.hidden) return;
+  var age = "";
+  if(diag.inchange>0) age = ' <span style="color:var(--down)">(identique depuis '+diag.inchange+' lectures)</span>';
+  p.innerHTML =
+    '<b>Source lue</b><div class="dv">'+esc(diag.src)+'</div>'+
+    '<b>Heure envoyée par Excel</b><div class="dv">'+esc(diag.derniereMaj)+age+'</div>'+
+    '<b>Dernière lecture réussie</b><div class="dv">'+esc(diag.dernier)+'</div>'+
+    '<b>Lectures</b><div class="dv">'+diag.recus+' réussies sur '+diag.essais+'</div>'+
+    (diag.erreur?'<b>Dernière erreur</b><div class="dv" style="color:var(--down)">'+esc(diag.erreur)+'</div>':'')+
+    '<div class="dh">Si l\'heure envoyée par Excel n\'avance pas, le problème est du côté du classeur. '
+    +'Si elle avance mais que l\'écran ne change pas, prévenez-moi.</div>';
 }
 
 var tmr;
@@ -565,6 +619,11 @@ document.addEventListener("click",function(ev){
   var nom=b.parentNode.dataset.seg;
   cat[nom]=b.dataset.cat;
   dessiner();
+});
+
+/* panneau de diagnostic */
+el("hLive").addEventListener("click",function(){
+  var p=el("diag"); p.hidden=!p.hidden; majDiag();
 });
 
 /* cycle de vie */
