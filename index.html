@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0B1A30">
+<title>Pearl Of Pacific Contest — En direct</title>
+<style>
+:root{
+  --bg:#071324; --bg2:#0B1A30; --panel:#12294A; --panel2:#17325A;
+  --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.16);
+  --txt:#EAF2FF; --dim:#92A8C9; --dim2:#6D85A8;
+  --or:#F28C28; --bleu:#2E75B6; --bleuc:#4D9BE0;
+  --gold:#E8B923; --silver:#C5CED6; --bronze:#D08B5B;
+  --up:#36C98A; --down:#E8614C;
+  --safe:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);
+  background-image:radial-gradient(120% 60% at 50% 0%,#15305A 0%,var(--bg2) 42%,var(--bg) 100%);
+  background-attachment:fixed;
+  color:var(--txt);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.35;
+  padding-bottom:calc(28px + var(--safe));
+  overflow-x:hidden;
+}
+.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ---------- en-tete ---------- */
+header{
+  position:sticky;top:0;z-index:20;
+  background:linear-gradient(180deg,rgba(7,19,36,.97) 60%,rgba(7,19,36,.86) 100%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+  padding:10px 16px 0;
+}
+.brand{display:flex;align-items:center;gap:10px}
+.mark{
+  width:30px;height:30px;flex:0 0 30px;border-radius:9px;
+  background:linear-gradient(145deg,var(--or),#C96A12);
+  display:grid;place-items:center;font-weight:900;font-size:9.5px;letter-spacing:0;color:#1A0E02;
+}
+.brand h1{margin:0;font-size:15px;font-weight:800;letter-spacing:.3px;line-height:1.1}
+.brand .sub{font-size:11.5px;color:var(--dim);margin-top:1px}
+.live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--dim);white-space:nowrap}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--up);box-shadow:0 0 0 0 rgba(54,201,138,.6);animation:pulse 2.4s infinite}
+.dot.off{background:var(--dim2);animation:none;box-shadow:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(54,201,138,.55)}70%{box-shadow:0 0 0 8px rgba(54,201,138,0)}100%{box-shadow:0 0 0 0 rgba(54,201,138,0)}}
+
+nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px 9px}
+nav::-webkit-scrollbar{display:none}
+nav button{
+  flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.04);
+  color:var(--dim);font:600 13px/1 inherit;padding:9px 14px;border-radius:999px;cursor:pointer;
+  transition:.15s;
+}
+nav button.on{background:var(--or);border-color:var(--or);color:#1A0E02;font-weight:800}
+
+/* ---------- structure ---------- */
+main{padding:14px 14px 0;max-width:620px;margin:0 auto}
+section{display:none;animation:fade .25s ease}
+section.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+
+.card{
+  background:linear-gradient(180deg,var(--panel) 0%,#102343 100%);
+  border:1px solid var(--line);border-radius:16px;
+  margin-bottom:14px;overflow:hidden;
+  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 10px 26px rgba(0,0,0,.33);
+}
+.card > h2{
+  margin:0;padding:13px 15px 11px;font-size:13px;font-weight:800;
+  letter-spacing:.9px;text-transform:uppercase;color:var(--txt);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:baseline;gap:8px;
+}
+.card > h2 .accent{width:3px;height:14px;border-radius:2px;background:var(--or);flex:0 0 3px;align-self:center}
+.card > h2 small{margin-left:auto;font-size:11px;font-weight:600;letter-spacing:.2px;color:var(--dim);text-transform:none}
+.pad{padding:13px 15px}
+.note{font-size:11.5px;color:var(--dim2);padding:0 2px 16px;line-height:1.5}
+
+/* ---------- segmented RX / INTER ---------- */
+.seg{display:flex;gap:4px;padding:10px 12px;background:rgba(0,0,0,.18);border-bottom:1px solid var(--line)}
+.seg button{
+  flex:1;border:1px solid transparent;background:transparent;color:var(--dim);
+  font:700 12.5px/1 inherit;letter-spacing:.7px;padding:9px 6px;border-radius:9px;cursor:pointer;transition:.15s
+}
+.seg button.on{background:var(--panel2);border-color:var(--line2);color:var(--txt)}
+.seg button.on[data-cat="RX"]{box-shadow:inset 0 -2px 0 var(--or)}
+.seg button.on[data-cat="INTER"]{box-shadow:inset 0 -2px 0 var(--bleuc)}
+.subt{padding:9px 15px 0;font-size:11.5px;color:var(--dim);letter-spacing:.3px}
+
+/* ---------- lignes de classement ---------- */
+.rows{padding:5px 0 9px}
+.row{
+  display:grid;grid-template-columns:34px 1fr auto;align-items:center;
+  gap:10px;padding:8px 15px;border-bottom:1px solid rgba(255,255,255,.045);
+}
+.row:last-child{border-bottom:0}
+.row .rk{
+  font:800 15px/1 inherit;text-align:center;color:var(--dim);
+  font-variant-numeric:tabular-nums;
+}
+.row.p1 .rk,.row.p2 .rk,.row.p3 .rk{
+  width:28px;height:28px;margin:0 3px;border-radius:9px;display:grid;place-items:center;color:#10233E;font-size:14px
+}
+.row.p1 .rk{background:linear-gradient(145deg,#F6D34A,var(--gold))}
+.row.p2 .rk{background:linear-gradient(145deg,#E2E9EF,var(--silver))}
+.row.p3 .rk{background:linear-gradient(145deg,#E3A877,var(--bronze))}
+.row .nm{font-size:14.5px;font-weight:600;letter-spacing:.1px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .rt{display:flex;align-items:baseline;gap:9px;justify-content:flex-end;white-space:nowrap}
+.row .perf{font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.row .pts{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+.row .gap{font-size:11.5px;color:var(--dim2);font-variant-numeric:tabular-nums}
+.row.p1 .pts{color:var(--gold)}
+
+/* ---------- vagues ---------- */
+.wave{padding:12px 15px;border-bottom:1px solid var(--line)}
+.wave:last-child{border-bottom:0}
+.wave .lbl{font-size:10.5px;font-weight:800;letter-spacing:1.1px;color:var(--or)}
+.wave.w2 .lbl{color:var(--bleuc)}
+.wave.w3 .lbl{color:var(--dim)}
+.wave .when{font-size:13.5px;font-weight:700;margin:3px 0 9px}
+.lanes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.lane{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:9px;padding:7px 9px;min-width:0}
+.lane b{font-size:10px;font-weight:800;color:var(--dim2);flex:0 0 auto}
+.lane span{font-size:12.5px;line-height:1.25;overflow-wrap:anywhere}
+
+/* ---------- descriptif WOD ---------- */
+.wodhead{padding:14px 15px 0}
+.wodhead .t{font-size:19px;font-weight:800;letter-spacing:.2px}
+.wodhead .s{font-size:12.5px;color:var(--dim);margin-top:4px}
+.wodbox{margin:12px 15px 15px;border-radius:12px;border:1px solid var(--line);overflow:hidden}
+.wodbox .cat{padding:9px 13px;font:800 12px/1.3 inherit;letter-spacing:1px}
+.wodbox.rx .cat{background:rgba(242,140,40,.17);color:#FFC489;border-bottom:1px solid rgba(242,140,40,.3)}
+.wodbox.inter .cat{background:rgba(77,155,224,.15);color:#A9D2F6;border-bottom:1px solid rgba(77,155,224,.3)}
+.wodbox pre{
+  margin:0;padding:13px;font:400 14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.2);color:#DCE8F8
+}
+
+/* ---------- tableau indicateurs / faits ---------- */
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:4px 0 10px}
+.kv .k{padding:9px 15px 2px;font-size:11.5px;color:var(--dim2);grid-column:1/-1;letter-spacing:.3px}
+.kv .v{display:grid;grid-template-columns:38px 1fr;gap:9px;align-items:baseline;padding:2px 15px 7px;grid-column:1/-1}
+.kv .v b{font-size:10px;font-weight:800;letter-spacing:.8px}
+.kv .v.rx b{color:var(--or)} .kv .v.it b{color:var(--bleuc)}
+.kv .v span{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- evolution ---------- */
+.evo{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:9px 15px;border-bottom:1px solid rgba(255,255,255,.045)}
+.evo:last-child{border-bottom:0}
+.evo .rk{font:800 14px/1 inherit;color:var(--dim);text-align:center;font-variant-numeric:tabular-nums}
+.evo .nm{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.evo .trk{display:flex;align-items:center;gap:3px;margin-top:4px;flex-wrap:wrap}
+.evo .trk i{
+  font-style:normal;font-size:10.5px;font-weight:700;color:var(--dim);
+  background:rgba(255,255,255,.07);border-radius:5px;padding:2px 5px;min-width:19px;text-align:center;
+  font-variant-numeric:tabular-nums
+}
+.evo .trk i.last{background:rgba(242,140,40,.22);color:#FFC489}
+.evo .trk em{font-style:normal;color:var(--dim2);font-size:9px}
+.delta{font:800 13px/1 inherit;font-variant-numeric:tabular-nums;white-space:nowrap}
+.delta.u{color:var(--up)} .delta.d{color:var(--down)} .delta.e{color:var(--dim2)}
+.best{display:flex;align-items:center;gap:10px;padding:12px 15px;background:rgba(54,201,138,.08);border-top:1px solid var(--line)}
+.best .l{font-size:10px;font-weight:800;letter-spacing:.9px;color:var(--dim)}
+.best .v{font-size:14px;font-weight:700;margin-top:2px}
+
+/* ---------- divers ---------- */
+.empty{padding:26px 15px;text-align:center;color:var(--dim2);font-size:13.5px}
+.lines{padding:4px 15px 14px}
+.lines div{font-size:13.5px;color:#CFE0F5;padding:3px 0}
+.lines div:first-child{font-size:16px;font-weight:800;color:var(--txt);padding-bottom:5px}
+footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;line-height:1.6}
+#toast{
+  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + var(--safe));
+  background:#1C3157;border:1px solid var(--line2);color:var(--txt);
+  font-size:12.5px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.3s;z-index:40;
+  box-shadow:0 8px 24px rgba(0,0,0,.4)
+}
+#toast.on{opacity:1}
+@media (min-width:560px){
+  .row .nm{font-size:15.5px}
+  .lanes{grid-template-columns:1fr 1fr}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="mark">POPC</div>
+    <div>
+      <h1 id="hTitre">PEARL OF PACIFIC CONTEST</h1>
+      <div class="sub" id="hDates">—</div>
+    </div>
+    <div class="live"><span class="dot" id="hDot"></span><span id="hMaj">chargement…</span></div>
+  </div>
+  <nav id="nav">
+    <button data-v="live" class="on">En direct</button>
+    <button data-v="wod">Le WOD</button>
+    <button data-v="resultats">Résultats</button>
+    <button data-v="palmares">Palmarès</button>
+    <button data-v="journees">Journées</button>
+    <button data-v="evolution">Évolution</button>
+  </nav>
+</header>
+
+<main>
+  <section id="v-live" class="on"></section>
+  <section id="v-wod"></section>
+  <section id="v-resultats"></section>
+  <section id="v-palmares"></section>
+  <section id="v-journees"></section>
+  <section id="v-evolution"></section>
+</main>
+
+<footer>
+  Mise à jour automatique toutes les 20&nbsp;secondes.<br>
+  Classements officiels&nbsp;: tableau d'affichage de la compétition.
+</footer>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   PEARL OF PACIFIC CONTEST — page spectateurs
+   Lit data.json (genere par la macro Excel ExportWeb) et remet
+   en page les 6 ecrans du classeur au format telephone.
+   ============================================================ */
+
+/* ------------------------------------------------------------------
+   REGLAGES — les deux seules lignes a modifier si besoin.
+
+   SRC : ou la page va chercher les resultats.
+         "data.json"  = le fichier depose a cote de cette page (par defaut).
+         Pour un affichage plus rapide, on peut mettre l'adresse directe
+         du fichier dans le depot, par exemple :
+         "https://raw.githubusercontent.com/MON-COMPTE/popc-live/main/data.json"
+   PERIODE : delai entre deux mises a jour, en millisecondes.
+   ------------------------------------------------------------------ */
+var SRC      = "data.json";
+var PERIODE  = 20000;
+
+/* permet de tester une autre source sans modifier le fichier : page.html?src=... */
+(function(){
+  var m = location.search.match(/[?&]src=([^&]+)/);
+  if(m) SRC = decodeURIComponent(m[1]);
+})();
+
+var D = null;                 // dernier jeu de donnees valide
+var vue = "live";
+var cat = { live:"RX", resultats:"RX", journees:"RX", evolution:"RX", palmares:"RX" };
+var echecs = 0;
+
+/* ---------- acces aux cellules : c(ecran, ligne Excel, colonne Excel) ---------- */
+function c(e,r,col){
+  try{
+    var g = D.ecrans[e];
+    if(!g || !g[r-1]) return "";
+    var v = g[r-1][col-1];
+    return (v===undefined||v===null) ? "" : String(v).trim();
+  }catch(_){ return ""; }
+}
+function esc(s){
+  return String(s).replace(/[&<>"']/g,function(m){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];
+  });
+}
+function el(id){ return document.getElementById(id); }
+
+/* ---------- briques d'affichage ---------- */
+function carte(titre,corps,petit){
+  if(!corps) return "";
+  return '<div class="card"><h2><span class="accent"></span>'+esc(titre)+
+         (petit?'<small>'+esc(petit)+'</small>':'')+'</h2>'+corps+'</div>';
+}
+function segment(nom,sstRX,sstINT){
+  var a = cat[nom];
+  /* pendant le WOD 1 (qualif) il n'y a pas encore de categories */
+  var qualif = /QUALIF/i.test(sstRX||"") && /QUALIF/i.test(sstINT||"");
+  var l1 = qualif ? "Places 1 à 16" : "RX";
+  var l2 = qualif ? "Places 17 et +" : "INTER";
+  return '<div class="seg" data-seg="'+nom+'">'+
+    '<button data-cat="RX" class="'+(a==="RX"?"on":"")+'">'+l1+'</button>'+
+    '<button data-cat="INTER" class="'+(a==="INTER"?"on":"")+'">'+l2+'</button>'+
+    '</div>'+
+    '<div class="subt">'+esc(a==="RX"?sstRX:sstINT)+'</div>';
+}
+/* vrai si le bloc de lignes rendu est vide */
+function vide(html){ return /class="empty"/.test(html); }
+/* une ligne de classement */
+function ligne(rk,nom,perf,pts,gap){
+  if(!nom) return "";
+  var p = parseInt(rk,10);
+  var cls = (p===1?"p1":p===2?"p2":p===3?"p3":"");
+  var droite = "";
+  if(perf) droite += '<span class="perf">'+esc(perf)+'</span>';
+  if(pts!=="" && pts!==undefined) droite += '<span class="pts">'+esc(pts)+'</span>';
+  if(gap) droite += '<span class="gap">'+esc(gap)+'</span>';
+  return '<div class="row '+cls+'"><div class="rk">'+esc(rk)+'</div>'+
+         '<div class="nm">'+esc(nom)+'</div><div class="rt">'+droite+'</div></div>';
+}
+/* bloc de lignes : cols = [colRang, colNom, colPerf|0, colPts, colSuffixe|0]
+   mode : "ecart" -> affiche "-12" ; "gen" -> affiche "gen. 3" ; sinon brut */
+function tableau(ecran,cols,r1,r2,mode){
+  var h="",n=0;
+  for(var r=(r1||8); r<=(r2||23); r++){
+    var nom = c(ecran,r,cols[1]); if(!nom) continue;
+    var perf = cols[2]? c(ecran,r,cols[2]) : "";
+    var pts  = cols[3]? c(ecran,r,cols[3]) : "";
+    var gap  = cols[4]? c(ecran,r,cols[4]) : "";
+    if(gap){
+      if(mode==="ecart") gap = (gap==="0"||gap==="—") ? "" : "−"+gap;
+      else if(mode==="gen") gap = "gén. "+gap;
+    }
+    h += ligne(c(ecran,r,cols[0]),nom,perf,pts,gap); n++;
+  }
+  return n? '<div class="rows">'+h+'</div>' : '<div class="empty">Pas encore de résultat.</div>';
+}
+/* nettoie un libelle Excel : coupe sur 2 espaces, retire les separateurs isoles */
+function morceaux(txt){
+  return String(txt||"").split(/\s{2,}/)
+    .map(function(s){return s.trim();})
+    .filter(function(s){ return s && !/^[—·\-|]+$/.test(s); });
+}
+/* decoupe "C1  EQUIPE A     C2  EQUIPE B" en couloirs */
+function couloirs(txt){
+  if(!txt) return [];
+  var t = txt.split(/\s{2,}/).map(function(s){return s.trim();}).filter(Boolean);
+  var out=[], i=0;
+  while(i<t.length){
+    if(/^C\d$/i.test(t[i])){ out.push([t[i], t[i+1]||""]); i+=2; }
+    else { out.push(["", t[i]]); i+=1; }
+  }
+  return out;
+}
+/* bloc "libelle / valeur RX / valeur INTER", lignes vides ignorees */
+function blocKV(e,r1,r2){
+  var k="",n=0;
+  for(var r=r1;r<=r2;r++){
+    var lib=c(e,r,12); if(!lib) continue;
+    var vr=c(e,r,14), vi=c(e,r,18);
+    if((!vr||vr==="—") && (!vi||vi==="—")) continue;   // rien a montrer encore
+    k += '<div class="k">'+esc(lib)+'</div>'+
+         '<div class="v rx"><b>RX</b><span>'+esc(vr||"—")+'</span></div>'+
+         '<div class="v it"><b>INTER</b><span>'+esc(vi||"—")+'</span></div>';
+    n++;
+  }
+  return n? '<div class="kv">'+k+'</div>' : "";
+}
+function blocVague(lbl,quand,paires,rang){
+  if(!lbl && !quand) return "";
+  if((!quand || quand==="—") && !paires.length) return "";   // plus rien a venir
+  var l="";
+  for(var i=0;i<paires.length;i++){
+    if(!paires[i][1]) continue;
+    l += '<div class="lane"><b>'+esc(paires[i][0]||("C"+(i+1)))+'</b><span>'+esc(paires[i][1])+'</span></div>';
+  }
+  return '<div class="wave w'+(rang||1)+'"><div class="lbl">'+esc(lbl)+'</div>'+
+         '<div class="when">'+esc(quand||"—")+'</div>'+
+         (l?'<div class="lanes">'+l+'</div>':'')+'</div>';
+}
+
+/* ============================ VUES ============================ */
+
+function vueLive(){
+  var e="live", a=cat.live, h="";
+  var rx = (a==="RX");
+
+  /* 1. resultats du WOD en cours */
+  h += carte(c(e,5,2)||"Résultats",
+        segment("live", c(e,6,2), c(e,6,7)) +
+        (rx ? tableau(e,[2,3,4,5]) : tableau(e,[7,8,9,10])));
+
+  /* 2. classement general */
+  var tg = rx ? tableau(e,[12,13,0,14,15],8,23,"ecart")
+              : tableau(e,[17,18,0,19,20],8,23,"ecart");
+  var sg = rx ? c(e,6,12) : c(e,6,17);
+  if(/suspense/i.test(sg) && !/après/i.test(sg)){
+    tg = '<div class="empty">🔒 Classement général gardé secret&nbsp;: il sera annoncé en direct sur le plateau.</div>';
+  }
+  h += carte(c(e,5,12)||"Classement général",
+        (vide(tg) ? "" : '<div class="subt" style="padding-bottom:4px">'+esc(sg)+'</div>')+tg);
+
+  /* 3. vagues */
+  var v = "";
+  v += blocVague(c(e,25,2),  c(e,26,2),  pairesVague(e,2,3),   1);
+  v += blocVague(c(e,25,12), c(e,26,12), pairesVague(e,12,13), 2);
+  v += blocVague(c(e,25,17), c(e,26,17), pairesVague(e,17,18), 3);
+  h += carte("Vagues", v);
+
+  el("v-live").innerHTML = h + '<div class="note">'+esc(c(e,32,2))+'</div>';
+}
+function pairesVague(e,colLbl,colNom){
+  var out=[];
+  for(var r=27;r<=30;r++){
+    var n=c(e,r,colNom); if(!n) continue;
+    out.push([c(e,r,colLbl),n]);
+  }
+  return out;
+}
+
+function vueWod(){
+  var e="wod", h="";
+  var titre = c(e,5,2);
+  if(!titre){ el("v-wod").innerHTML='<div class="card"><div class="empty">Aucun WOD à venir.</div></div>'; return; }
+  var m = morceaux(titre);                 // ["PROCHAIN WOD","WOD 4","Début 08:00"]
+  var gros = m.length>1 ? m[1] : m[0];     // on met le numero du WOD en gros
+  var petit = m.filter(function(x,i){ return i!==1 || m.length<2; }).join("  ·  ");
+  h += '<div class="card"><div class="wodhead"><div class="t">'+esc(gros)+'</div>'+
+       (petit?'<div class="s">'+esc(petit)+'</div>':'')+'</div>';
+  var drx=c(e,7,2), dit=c(e,7,12);
+  if(drx) h += '<div class="wodbox rx"><div class="cat">'+esc(c(e,6,2)||"RX")+'</div><pre>'+esc(drx)+'</pre></div>';
+  if(dit) h += '<div class="wodbox inter"><div class="cat">'+esc(c(e,6,12)||"INTER")+'</div><pre>'+esc(dit)+'</pre></div>';
+  h += '</div>';
+  el("v-wod").innerHTML = h;
+}
+
+function vueResultats(){
+  var e="resultats", a=cat.resultats, h="";
+  h += carte(c(e,5,2)||"Résultats",
+        segment("resultats", c(e,6,2)||"RX", c(e,6,7)||"INTER") +
+        (a==="RX" ? tableau(e,[2,3,4,5]) : tableau(e,[7,8,9,10])));
+
+  /* en chiffres */
+  h += carte("En chiffres", blocKV(e,8,13));
+
+  /* prochain WOD */
+  var p="";
+  for(var r2=16;r2<=19;r2++){ var t=c(e,r2,12); if(t) p += '<div>'+esc(t)+'</div>'; }
+  if(p) h += carte(c(e,15,12)||"Prochain WOD",'<div class="lines">'+p+'</div>');
+
+  el("v-resultats").innerHTML = h + '<div class="note">'+esc(c(e,25,2))+'</div>';
+}
+
+function vuePalmares(){
+  var e="palmares", a=cat.palmares, h="";
+  /* podiums */
+  h += carte(c(e,5,2)||"Podiums",
+        segment("palmares", c(e,6,2)||"RX", c(e,6,7)||"INTER") +
+        (a==="RX" ? tableau(e,[2,3,4,5],8,10) : tableau(e,[7,8,9,10],8,10)));
+
+  /* faits marquants */
+  h += carte(c(e,5,12)||"Faits marquants", blocKV(e,8,13));
+
+  /* prochains passages */
+  var v="";
+  for(var r2=13;r2<=20;r2++){
+    var q=c(e,r2,2); if(!q) continue;
+    var seg=morceaux(q);                        // ["08:00","WOD 4 · Vague 1 INTER"]
+    v += blocVague(seg[0]||"", seg.slice(1).join("  ·  ")||q, couloirs(c(e,r2,4)), (r2%2?1:2));
+  }
+  if(v) h += carte(c(e,12,2)||"Prochains passages", v);
+
+  el("v-palmares").innerHTML = h;
+}
+
+function vueJournees(){
+  var e="journees", a=cat.journees, h="";
+  var rx=(a==="RX");
+  h += carte(c(e,5,2)||"Jour 1",
+        segment("journees", c(e,6,2), c(e,6,7)) +
+        (rx ? tableau(e,[2,3,0,4,5],8,23,"gen") : tableau(e,[7,8,0,9,10],8,23,"gen")));
+  var j2 = rx ? tableau(e,[12,13,0,14,15],8,23,"gen") : tableau(e,[17,18,0,19,20],8,23,"gen");
+  h += carte(c(e,5,12)||"Jour 2",
+        '<div class="subt" style="padding-bottom:4px">'+esc(rx?c(e,6,12):c(e,6,17))+'</div>'+j2);
+  el("v-journees").innerHTML = h + '<div class="note">'+esc(c(e,25,2))+'</div>';
+}
+
+function vueEvolution(){
+  var e="evolution", a=cat.evolution, h="";
+  var rx=(a==="RX");
+  var cRk=rx?2:12, cNm=rx?3:13, c1=rx?4:14, cD=rx?10:20;
+
+  var corps="",n=0;
+  for(var r=8;r<=23;r++){
+    var nom=c(e,r,cNm); if(!nom) continue;
+    var t="",dernier=-1,places=[];
+    for(var w=0;w<6;w++){ places.push(c(e,r,c1+w)); if(places[w]) dernier=w; }
+    for(var w2=0;w2<6;w2++){
+      if(!places[w2]) continue;
+      if(t) t += '<em>›</em>';
+      t += '<i'+(w2===dernier?' class="last"':'')+'>'+esc(places[w2])+'</i>';
+    }
+    var d=c(e,r,cD), dv=parseInt(d,10);
+    var dc = isNaN(dv)||dv===0 ? "e" : (dv>0?"u":"d");
+    var dt = isNaN(dv) ? "" : (dv>0?"▲ "+dv : dv<0?"▼ "+Math.abs(dv) : "=");
+    corps += '<div class="evo"><div class="rk">'+esc(c(e,r,cRk))+'</div>'+
+             '<div><div class="nm">'+esc(nom)+'</div><div class="trk">'+t+'</div></div>'+
+             '<div class="delta '+dc+'">'+esc(dt)+'</div></div>';
+    n++;
+  }
+  if(!n) corps = '<div class="empty">Pas encore de classement.</div>';
+
+  var bl = rx?c(e,25,2):c(e,25,12), bv = rx?c(e,26,2):c(e,26,12);
+  var best = (bv && bv!=="—") ? '<div class="best"><div><div class="l">'+esc(bl)+'</div><div class="v">'+esc(bv)+'</div></div></div>' : "";
+
+  h += carte("Places après chaque WOD",
+        segment("evolution", c(e,6,2), c(e,6,12)) + corps + best);
+  el("v-evolution").innerHTML = h + '<div class="note">'+esc(c(e,28,2))+'</div>';
+}
+
+/* ============================ MOTEUR ============================ */
+var RENDU = { live:vueLive, wod:vueWod, resultats:vueResultats,
+              palmares:vuePalmares, journees:vueJournees, evolution:vueEvolution };
+
+function dessiner(){
+  if(!D) return;
+  el("hTitre").textContent = D.titre || "PEARL OF PACIFIC CONTEST";
+  el("hDates").textContent = D.dates || "";
+  document.title = (D.titre||"POPC")+" — En direct";
+  try{ RENDU[vue](); }catch(err){
+    el("v-"+vue).innerHTML = '<div class="card"><div class="empty">Affichage momentanément indisponible.</div></div>';
+  }
+}
+
+function majEtat(ok){
+  var dot=el("hDot"), txt=el("hMaj");
+  if(ok){ dot.className="dot"; txt.textContent = D && D.maj ? ("maj "+String(D.maj).slice(-8)) : "en direct"; }
+  else  { dot.className="dot off"; txt.textContent = D ? "hors ligne" : "indisponible"; }
+}
+
+function charger(manuel){
+  fetch(SRC+"?t="+Date.now(),{cache:"no-store"})
+    .then(function(r){ if(!r.ok) throw 0; return r.json(); })
+    .then(function(j){
+      if(!j || !j.ecrans) throw 0;
+      D=j; echecs=0; majEtat(true); dessiner();
+      if(manuel) toast("Classements à jour");
+    })
+    .catch(function(){
+      echecs++; majEtat(false);
+      if(!D) el("v-"+vue).innerHTML =
+        '<div class="card"><div class="empty">En attente des premiers résultats…</div></div>';
+      if(manuel) toast("Connexion impossible");
+    });
+}
+
+var tmr;
+function toast(m){
+  var t=el("toast"); t.textContent=m; t.className="on";
+  clearTimeout(tmr); tmr=setTimeout(function(){t.className="";},2200);
+}
+
+/* navigation */
+el("nav").addEventListener("click",function(ev){
+  var b=ev.target.closest("button"); if(!b) return;
+  vue=b.dataset.v;
+  [].forEach.call(this.children,function(x){ x.classList.toggle("on",x===b); });
+  [].forEach.call(document.querySelectorAll("main section"),function(s){
+    s.classList.toggle("on", s.id==="v-"+vue);
+  });
+  dessiner();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+/* bascule RX / INTER */
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest(".seg button"); if(!b) return;
+  var nom=b.parentNode.dataset.seg;
+  cat[nom]=b.dataset.cat;
+  dessiner();
+});
+
+/* cycle de vie */
+charger(false);
+var boucle = setInterval(function(){ if(!document.hidden) charger(false); }, PERIODE);
+document.addEventListener("visibilitychange",function(){ if(!document.hidden) charger(false); });
+window.addEventListener("focus",function(){ charger(false); });
+</script>
+</body>
+</html>
