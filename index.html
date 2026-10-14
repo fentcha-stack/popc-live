@@ -671,23 +671,42 @@ function charger(manuel){
 }
 
 /* ---- panneau de diagnostic : appui long ou clic sur l'indicateur ---- */
+/* ecart en minutes entre une date "jj/mm/aaaa hh:mm:ss" et maintenant */
+function ageMinutes(maj){
+  var m = String(maj||"").match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if(!m) return null;
+  var d = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]);
+  var mn = Math.round((Date.now() - d.getTime())/60000);
+  return (mn < -5 || mn > 600) ? null : Math.max(0, mn);
+}
+
 function majDiag(){
   var p = el("diag"); if(!p || p.hidden) return;
-  var age = "";
-  if(diag.inchange>0) age = ' <span style="color:var(--down)">(identique depuis '+diag.inchange+' lectures)</span>';
-  var src = diag.detail.map(function(d){
-    return '<div class="dv">'+esc(d.src)+' — <span style="color:'
-      +(d.err?'var(--down)':'var(--up)')+'">'+esc(d.err || d.maj || "—")+'</span></div>';
-  }).join("");
+
+  /* age de la donnee affichee */
+  var age = "", cls = "var(--up)", mn = ageMinutes(diag.derniereMaj);
+  if(mn !== null){
+    age = mn < 1 ? "à l'instant" : ("il y a " + mn + " min");
+    if(mn >= 10) cls = "var(--or)";
+    if(mn >= 30) cls = "var(--down)";
+  }
+
+  /* d'ou vient la donnee retenue */
+  var via = /^s\d+\.json/.test(String(diag.src).split("/").slice(-1)[0] || "")
+            ? "fichier de créneau (le plus rapide)" : "fichier principal";
+
   p.innerHTML =
-    '<b>Heure envoyée par Excel</b><div class="dv">'+esc(diag.derniereMaj)+age+'</div>'+
-    '<b>Fichiers trouvés</b>'+src+
-    '<div class="dv" style="color:var(--dim2)">'+(diag.interroges||0)+' adresses interrogées</div>'+
-    '<b>Dernière lecture</b><div class="dv">'+esc(diag.dernier)+
-      '  ·  '+diag.recus+' réussies sur '+diag.essais+'</div>'+
-    '<div class="dh">La page lit plusieurs adresses et garde la plus récente. '
-    +'Les adresses sans réponse sont normales : ce sont des créneaux pas encore écrits.</div>';
+    '<b>Dernière publication reçue</b>'+
+    '<div class="dv" style="font-size:14px">'+esc(diag.derniereMaj)+
+      (age?' <span style="color:'+cls+'">· '+esc(age)+'</span>':'')+'</div>'+
+    '<b>Reçue par</b><div class="dv">'+esc(via)+'</div>'+
+    '<b>Lectures</b><div class="dv">'+diag.recus+' réussies sur '+diag.essais+
+      '  ·  dernière à '+esc(diag.dernier)+'</div>'+
+    (diag.erreur?'<b>Dernière erreur</b><div class="dv" style="color:var(--down)">'+esc(diag.erreur)+'</div>':'')+
+    '<div class="dh">Comparez l\'heure ci-dessus avec la ligne « Dernière publication » '+
+    'du classeur : si les deux correspondent, toute la chaîne fonctionne.</div>';
 }
+
 
 var tmr;
 function toast(m){
