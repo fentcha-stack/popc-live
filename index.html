@@ -917,11 +917,31 @@ el("hRefresh").addEventListener("click",function(ev){
   document.addEventListener("touchend",function(){ y0=null; },{passive:true});
 })();
 
-/* cycle de vie */
-charger(false);
-var boucle = setInterval(function(){ if(!document.hidden) charger(false); }, PERIODE);
-document.addEventListener("visibilitychange",function(){ if(!document.hidden) charger(false); });
-window.addEventListener("focus",function(){ charger(false); });
+/* cycle de vie
+   En veille, le telephone gele les minuteurs : au reveil, la derniere
+   publication peut dater de plusieurs minutes et sortir de la fenetre
+   courte lue en fond. On fait donc une recherche LARGE a chaque retour
+   a l'ecran, et une lecture courte pendant que la page est visible. */
+var vuLe = Date.now();
+
+function reprendre(){
+  if(document.hidden) return;
+  /* absence de plus de 30 s -> recherche large, sinon lecture normale */
+  var large = (Date.now() - vuLe) > 30000;
+  vuLe = Date.now();
+  charger(large);
+}
+
+charger(true);                       /* premier affichage : recherche large */
+var boucle = setInterval(function(){
+  if(document.hidden) return;
+  vuLe = Date.now();
+  charger(false);
+}, PERIODE);
+document.addEventListener("visibilitychange", reprendre);
+window.addEventListener("focus", reprendre);
+window.addEventListener("pageshow", reprendre);
+window.addEventListener("online", function(){ charger(true); });
 </script>
 </body>
 </html>
