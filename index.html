@@ -622,8 +622,8 @@ function vueEvolution(){
 }
 
 /* ---------- ordre de passage ---------- */
-/* 5 blocs empiles dans la feuille : WOD 2 a 6, titre en ligne 4, 15, 26, 37, 48 */
-var P_BLOCS = [4,15,26,37,48];
+/* 6 blocs empiles dans la feuille : WOD 1 a 6, titre en ligne 4, 15, 26, 37, 48, 59 */
+var P_BLOCS = [4,15,26,37,48,59];
 var wodSel = -1;                       /* -1 = choix automatique */
 
 /* blocs reellement remplis, dans l'ordre */
@@ -651,7 +651,7 @@ function vuePassage(){
   var blocs=passageBlocs();
   if(!blocs.length){
     el("v-passage").innerHTML = carte("Ordre de passage",
-      '<div class="empty">L\'ordre de passage sera publié dès la fin du WOD 1.</div>');
+      '<div class="empty">L\'ordre de passage n\'est pas encore publié.</div>');
     return;
   }
   /* le WOD choisi, sinon le premier qui n'est pas entierement termine */
