@@ -305,7 +305,8 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
    PERIODE : delai entre deux mises a jour, en millisecondes.
    ------------------------------------------------------------------ */
 var SRC      = "data.json";
-var PERIODE  = 15000;
+var PERIODE  = 20000;        /* pas de base, aligne sur les creneaux de 20 s */
+var PERIODE_CALME = 60000;   /* quand rien ne bouge depuis plusieurs minutes */
 
 /* --- choix automatique de la source ---------------------------------
    Sur GitHub Pages, le site est reconstruit a chaque envoi : le fichier
@@ -347,7 +348,8 @@ function lotsSources(large){
   var s = creneau(new Date()), lots = [];
   function url(d){ return BASE_RAW + "live/s" + ((((s+d)%180)+180)%180) + ".json"; }
 
-  lots.push([url(1), url(0), url(-1), url(-2)]);        /* ~80 dernieres secondes */
+  lots.push(large ? [url(1), url(0), url(-1), url(-2)]  /* ~80 s */
+                  : [url(1), url(0), url(-1)]);        /* ~60 s, suffit pour un cycle de 20 s */
   if(large){
     for(var d=-3; d>=-18; d-=4){                        /* jusqu'a ~6 minutes */
       lots.push([url(d), url(d-1), url(d-2), url(d-3)]);
@@ -761,6 +763,9 @@ function lireUne(src){
 
 /* Interroge toutes les sources et retient la plus recente : ni le cache du site
    ni celui du depot ne peut plus faire reculer l'affichage. */
+var cycles = 0;      /* nombre de lectures de fond depuis le debut */
+var calmes = 0;      /* cycles consecutifs sans nouvelle publication */
+
 function charger(manuel){
   diag.essais++;
   var large = manuel || !D;
@@ -772,7 +777,10 @@ function charger(manuel){
        tout et on garde la version la plus recente, jamais la premiere. */
     lots.forEach(function(l){ toutes = toutes.concat(l); });
   } else {
-    toutes = lots[0].concat(lots[lots.length-1]);
+    /* le fichier principal est garde en cache ~5 min par GitHub : le relire a
+       chaque cycle ne sert a rien. Une fois sur six suffit comme filet. */
+    cycles++;
+    toutes = (cycles % 6 === 0) ? lots[0].concat(lots[lots.length-1]) : lots[0].slice();
   }
 
   Promise.all(toutes.map(lireUne)).then(function(res){
@@ -790,6 +798,7 @@ function charger(manuel){
     if(!best){
       diag.erreur = res[0].err || "indisponible";
       echecs++; majEtat(false); majDiag();
+      if(typeof planifier === "function") planifier();   /* reprogramme plus loin */
       if(!D) el("v-"+vue).innerHTML =
         '<div class="card"><div class="empty">En attente des premiers résultats…</div></div>';
       if(manuel) toast("Connexion impossible");
@@ -805,6 +814,7 @@ function charger(manuel){
       D = best.data; dessiner();
     }
     echecs=0; majEtat(true); majDiag();
+    calmes = nouveau ? 0 : calmes + 1;
     if(nouveau){
       var m = el("main-zone"); if(m){ m.classList.remove("maj-flash"); void m.offsetWidth; m.classList.add("maj-flash"); }
       if(manuel) toast("Classements mis à jour");
@@ -929,15 +939,35 @@ function reprendre(){
   /* absence de plus de 30 s -> recherche large, sinon lecture normale */
   var large = (Date.now() - vuLe) > 30000;
   vuLe = Date.now();
+  calmes = 0;                 /* on repart en cadence vive */
   charger(large);
+  if(typeof planifier === "function") planifier();
+}
+
+/* Cadence adaptative : vif juste apres une publication, econome ensuite.
+   Une vague dure une dizaine de minutes ; inutile d'interroger GitHub
+   toutes les 20 s pendant tout ce temps. Chaque telephone passe ainsi
+   d'environ 1200 a environ 250 requetes par heure. */
+function delaiSuivant(){
+  /* Si GitHub refuse (trop de monde derriere la meme adresse IP), insister
+     au meme rythme ne ferait qu'aggraver les choses : on s'ecarte, puis on
+     revient des que la premiere lecture repasse. */
+  if(echecs > 0) return Math.min(PERIODE * Math.pow(2, Math.min(echecs, 4)), 300000);
+  if(calmes < 6)  return PERIODE;            /* les 2 premieres minutes */
+  if(calmes < 15) return PERIODE * 2;        /* puis 40 s */
+  return PERIODE_CALME;                      /* au-dela, 60 s */
 }
 
 charger(true);                       /* premier affichage : recherche large */
-var boucle = setInterval(function(){
-  if(document.hidden) return;
-  vuLe = Date.now();
-  charger(false);
-}, PERIODE);
+var minuteur = null;
+function planifier(){
+  if(minuteur) clearTimeout(minuteur);
+  minuteur = setTimeout(function(){
+    if(!document.hidden){ vuLe = Date.now(); charger(false); }
+    planifier();
+  }, delaiSuivant());
+}
+planifier();
 document.addEventListener("visibilitychange", reprendre);
 window.addEventListener("focus", reprendre);
 window.addEventListener("pageshow", reprendre);
