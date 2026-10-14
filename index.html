@@ -185,6 +185,42 @@ section.on{display:block}
 .best .l{font-size:10px;font-weight:800;letter-spacing:.9px;color:var(--dim)}
 .best .v{font-size:14px;font-weight:700;margin-top:2px}
 
+/* ---------- ordre de passage ---------- */
+.wsel{display:flex;gap:7px;overflow-x:auto;padding:11px 15px 12px;border-bottom:1px solid var(--line);
+      -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.wsel::-webkit-scrollbar{display:none}
+.wsel button{
+  flex:0 0 auto;background:rgba(255,255,255,.06);border:1px solid var(--line2);color:var(--dim);
+  font:700 12.5px/1 inherit;padding:9px 15px;border-radius:999px;cursor:pointer;white-space:nowrap;
+  font-family:inherit;transition:.15s
+}
+.wsel button.on{background:var(--or);border-color:var(--or);color:#17120A}
+.pstate{padding:10px 15px;font-size:12px;color:var(--dim);display:flex;gap:7px;align-items:baseline;flex-wrap:wrap}
+.pstate b{color:var(--txt);font-size:13px;font-weight:700}
+.pstate .prov{color:#F0B860}
+.vg{border-top:1px solid var(--line)}
+.vg:first-of-type{border-top:0}
+.vg-h{display:flex;align-items:center;gap:8px;padding:10px 15px 8px;flex-wrap:wrap}
+.vg-h .t{font-size:14px;font-weight:800;letter-spacing:.2px}
+.vg-h .b{font-size:9.5px;font-weight:800;letter-spacing:.9px;padding:3px 7px;border-radius:5px}
+.vg-h .b.rx{background:rgba(242,140,40,.2);color:#FFC489}
+.vg-h .b.it{background:rgba(94,160,255,.18);color:#A8CCFF}
+.vg-h .hr{margin-left:auto;font-size:14px;font-weight:800;color:var(--or);font-variant-numeric:tabular-nums}
+.vg-h .st{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--dim2);
+          border:1px solid var(--line2);border-radius:999px;padding:2px 8px}
+.vg.encours{background:rgba(54,201,138,.06)}
+.vg.encours .st{color:var(--up);border-color:rgba(54,201,138,.45)}
+.vg.finie .vg-h .t,.vg.finie .vg-h .hr{opacity:.55}
+.vg-c{padding:0 15px 11px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.cl{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.045);
+    border-radius:8px;padding:8px 10px;min-width:0}
+.cl .n{flex:0 0 auto;width:18px;height:18px;border-radius:5px;background:rgba(255,255,255,.1);
+       color:var(--dim);font:800 10px/18px inherit;text-align:center}
+/* le nom doit etre lisible en entier : on passe a la ligne plutot que de couper */
+.cl .e{font-size:12.5px;font-weight:600;line-height:1.3;min-width:0;overflow-wrap:anywhere}
+.cl.vide{opacity:.35}
+@media (max-width:360px){ .vg-c{grid-template-columns:1fr} }
+
 /* ---------- divers ---------- */
 .empty{padding:26px 15px;text-align:center;color:var(--dim2);font-size:13.5px}
 .lines{padding:4px 15px 14px}
@@ -230,6 +266,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
     <button data-v="palmares">Palmarès</button>
     <button data-v="journees">Journées</button>
     <button data-v="evolution">Évolution</button>
+    <button data-v="passage">Passage</button>
   </nav>
 </header>
 
@@ -240,6 +277,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
   <section id="v-palmares"></section>
   <section id="v-journees"></section>
   <section id="v-evolution"></section>
+  <section id="v-passage"></section>
 </main>
 
 <footer>
@@ -583,12 +621,108 @@ function vueEvolution(){
   el("v-evolution").innerHTML = h + '<div class="note">'+esc(c(e,28,2))+'</div>';
 }
 
+/* ---------- ordre de passage ---------- */
+/* 5 blocs empiles dans la feuille : WOD 2 a 6, titre en ligne 4, 15, 26, 37, 48 */
+var P_BLOCS = [4,15,26,37,48];
+var wodSel = -1;                       /* -1 = choix automatique */
+
+/* blocs reellement remplis, dans l'ordre */
+function passageBlocs(){
+  var t=[];
+  for(var i=0;i<P_BLOCS.length;i++){
+    var L=P_BLOCS[i], nom=c("passage",L,1);
+    if(!nom) continue;
+    var vagues=0;
+    for(var k=0;k<8;k++){ if(c("passage",L+2+k,1)) vagues++; }
+    if(vagues) t.push({ligne:L, nom:nom, jour:c("passage",L,2),
+                       debut:c("passage",L,3), etat:c("passage",L,4), n:vagues});
+  }
+  return t;
+}
+function passageDispo(){ return passageBlocs().length>0; }
+
+/* "Vague 3 INTER" -> ["Vague 3","INTER"] */
+function coupeVague(nom){
+  var m=String(nom).match(/^(.*?)\s+(RX|INTER)$/i);
+  return m ? [m[1], m[2].toUpperCase()] : [nom, ""];
+}
+
+function vuePassage(){
+  var blocs=passageBlocs();
+  if(!blocs.length){
+    el("v-passage").innerHTML = carte("Ordre de passage",
+      '<div class="empty">L\'ordre de passage sera publié dès la fin du WOD 1.</div>');
+    return;
+  }
+  /* le WOD choisi, sinon le premier qui n'est pas entierement termine */
+  var idx=-1;
+  for(var i=0;i<blocs.length;i++){ if(blocs[i].ligne===wodSel){ idx=i; break; } }
+  if(idx<0){
+    idx=0;
+    for(var j=0;j<blocs.length;j++){
+      var fini=true, L=blocs[j].ligne;
+      for(var k=0;k<8;k++){
+        var nm=c("passage",L+2+k,1);
+        if(nm && c("passage",L+2+k,3)!=="Terminée"){ fini=false; break; }
+      }
+      if(!fini){ idx=j; break; }
+    }
+  }
+  var B=blocs[idx];
+
+  var onglets='<div class="wsel">';
+  for(var w=0;w<blocs.length;w++){
+    onglets += '<button data-wod="'+blocs[w].ligne+'"'+(w===idx?' class="on"':'')+'>'+
+               esc(blocs[w].nom)+'</button>';
+  }
+  onglets += '</div>';
+
+  var prov=/provisoire/i.test(B.etat);
+  var tete='<div class="pstate">'+
+           (B.debut?'<b>Début '+esc(B.debut)+'</b>':'')+
+           (B.jour?'<span>'+esc(B.jour)+'</span>':'')+
+           (B.etat?'<span class="'+(prov?"prov":"")+'">'+esc(B.etat)+'</span>':'')+
+           '</div>';
+
+  var corps="";
+  for(var k2=0;k2<8;k2++){
+    var r=B.ligne+2+k2, nom=c("passage",r,1);
+    if(!nom) continue;
+    var p=coupeVague(nom), heure=c("passage",r,2), st=c("passage",r,3);
+    var cls = st==="En cours" ? " encours" : (st==="Terminée" ? " finie" : "");
+    var badge = p[1] ? '<span class="b '+(p[1]==="RX"?"rx":"it")+'">'+p[1]+'</span>' : "";
+    var cou="";
+    for(var q=0;q<4;q++){
+      var eq=c("passage",r,4+q);
+      cou += '<div class="cl'+(eq?"":" vide")+'"><span class="n">'+(q+1)+'</span>'+
+             '<span class="e">'+esc(eq||"—")+'</span></div>';
+    }
+    corps += '<div class="vg'+cls+'"><div class="vg-h"><span class="t">'+esc(p[0])+'</span>'+
+             badge+(heure?'<span class="hr">'+esc(heure)+'</span>':"")+
+             (st?'<span class="st">'+esc(st)+'</span>':"")+'</div>'+
+             '<div class="vg-c">'+cou+'</div></div>';
+  }
+
+  el("v-passage").innerHTML =
+    carte("Ordre de passage", onglets+tete+corps) +
+    '<div class="note">Les numéros indiquent le couloir. Les horaires sont indicatifs ' +
+    'et peuvent glisser selon le déroulé de la compétition.</div>';
+}
+
 /* ============================ MOTEUR ============================ */
 var RENDU = { live:vueLive, wod:vueWod, resultats:vueResultats,
-              palmares:vuePalmares, journees:vueJournees, evolution:vueEvolution };
+              palmares:vuePalmares, journees:vueJournees, evolution:vueEvolution,
+              passage:vuePassage };
 
 function dessiner(){
   if(!D) return;
+  /* l'onglet n'apparait que si le classeur publie l'ecran correspondant */
+  var bp=document.querySelector('nav button[data-v="passage"]');
+  if(bp){
+    var ok=passageDispo();
+    bp.hidden=!ok;
+    if(!ok && vue==="passage"){ allerA("live"); return; }
+  }
   el("hTitre").textContent = D.titre || "PEARL OF PACIFIC CONTEST";
   el("hDates").textContent = D.dates || "";
   document.title = (D.titre||"POPC")+" — En direct";
@@ -725,15 +859,27 @@ function toast(m){
 }
 
 /* navigation */
-el("nav").addEventListener("click",function(ev){
-  var b=ev.target.closest("button"); if(!b) return;
-  vue=b.dataset.v;
-  [].forEach.call(this.children,function(x){ x.classList.toggle("on",x===b); });
+/* bascule vers un onglet, sans passer par le clic */
+function allerA(nom){
+  vue=nom;
+  [].forEach.call(el("nav").children,function(x){ x.classList.toggle("on",x.dataset.v===nom); });
   [].forEach.call(document.querySelectorAll("main section"),function(s){
-    s.classList.toggle("on", s.id==="v-"+vue);
+    s.classList.toggle("on", s.id==="v-"+nom);
   });
   dessiner();
+}
+
+el("nav").addEventListener("click",function(ev){
+  var b=ev.target.closest("button"); if(!b) return;
+  allerA(b.dataset.v);
   window.scrollTo({top:0,behavior:"smooth"});
+});
+
+/* choix du WOD dans l'ordre de passage */
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest(".wsel button"); if(!b) return;
+  wodSel=parseInt(b.dataset.wod,10);
+  vuePassage();
 });
 
 /* bascule RX / INTER */
