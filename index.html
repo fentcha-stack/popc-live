@@ -305,7 +305,13 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
    PERIODE : delai entre deux mises a jour, en millisecondes.
    ------------------------------------------------------------------ */
 var SRC      = "data.json";
-var VERSION  = "6 \u00b7 14/10 13h20";   /* visible dans le panneau de diagnostic */
+var VERSION  = "8 \u00b7 14/10 13h50";   /* visible dans le panneau de diagnostic */
+
+/* Seuils d'alerte du panneau, en minutes. Une vague dure de 15 a 21 min
+   selon le WOD : en dessous de SILENCE_NORMAL le silence est le rythme
+   ordinaire, il ne doit donc pas s'afficher comme un probleme. */
+var SILENCE_NORMAL = 25;
+var SILENCE_LONG   = 45;
 var PERIODE  = 20000;        /* pas de base, aligne sur les creneaux de 20 s */
 var PERIODE_CALME = 60000;   /* quand rien ne bouge depuis plusieurs minutes */
 
@@ -862,8 +868,8 @@ function majDiag(){
   var age = "", cls = "var(--up)", mn = ageMinutes(diag.derniereMaj);
   if(mn !== null){
     age = mn < 1 ? "à l'instant" : ("il y a " + mn + " min");
-    if(mn >= 10) cls = "var(--or)";
-    if(mn >= 30) cls = "var(--down)";
+    if(mn >= SILENCE_NORMAL) cls = "var(--or)";
+    if(mn >= SILENCE_LONG)   cls = "var(--down)";
   }
 
   /* d'ou vient la donnee retenue */
@@ -877,10 +883,13 @@ function majDiag(){
     '<b>Reçue par</b><div class="dv">'+esc(via)+'</div>'+
     '<b>Lectures</b><div class="dv">'+diag.recus+' réussies sur '+diag.essais+
       '  ·  dernière à '+esc(diag.dernier)+'</div>'+
-    (mn !== null && mn >= 10 && !diag.erreur
+    (mn !== null && mn >= SILENCE_NORMAL && !diag.erreur
       ? '<div class="dh" style="color:var(--or)">Aucune publication depuis '+esc(age)+
-        '. C\'est normal entre deux vagues : la page reste en liaison avec GitHub '+
-        'et affichera le prochain classement dès qu\'il sera publié.</div>' : '')+
+        (mn >= SILENCE_LONG
+          ? '. Une vague dure une vingtaine de minutes : v\u00e9rifiez qu\'une publication '+
+            'n\'a pas \u00e9t\u00e9 oubli\u00e9e.'
+          : '. La liaison avec GitHub est bonne ; le prochain classement s\'affichera '+
+            'd\u00e8s qu\'il sera publi\u00e9.')+'</div>' : '')+
     (diag.erreur?'<b>Dernière erreur</b><div class="dv" style="color:var(--down)">'+esc(diag.erreur)+'</div>':'')+
     '<div class="dh">Comparez l\'heure ci-dessus avec la ligne « Dernière publication » '+
     'du classeur : si les deux correspondent, toute la chaîne fonctionne.</div>'+
@@ -979,8 +988,11 @@ function delaiSuivant(){
      au meme rythme ne ferait qu'aggraver les choses : on s'ecarte, puis on
      revient des que la premiere lecture repasse. */
   if(echecs > 0) return Math.min(PERIODE * Math.pow(2, Math.min(echecs, 4)), 300000);
-  if(calmes < 6)  return PERIODE;            /* les 2 premieres minutes */
-  if(calmes < 15) return PERIODE * 2;        /* puis 40 s */
+  /* Pendant la competition on reste a cadence fixe : une publication tombe
+     toutes les 15 a 20 min, et le delai doit rester previsible -- 20 s au
+     pire, quel que soit le moment du clic. On ne ralentit qu'apres une
+     demi-heure de silence complet : pause, fin de journee, nuit. */
+  if(calmes < 90) return PERIODE;            /* les 30 premieres minutes */
   return PERIODE_CALME;                      /* au-dela, 60 s */
 }
 
