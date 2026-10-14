@@ -261,20 +261,45 @@ var PERIODE  = 20000;
    de l'adresse de la page. Si cette lecture echoue, on retombe tout
    seul sur le data.json pose a cote de la page.
    -------------------------------------------------------------------- */
-var SOURCES = ["data.json"];
+var BASE_RAW = "";          /* .../main/  dans le depot, si on est sur github.io */
+var SRC_FIXE = null;        /* source imposee par ?src= */
+
 (function(){
   var m = location.hostname.match(/^([^.]+)\.github\.io$/);
   if(m){
     var compte = m[1];
     var seg = location.pathname.split("/").filter(Boolean);
     var depot = seg.length ? seg[0] : compte + ".github.io";
-    /* le depot en premier : il n'attend pas la reconstruction du site */
-    SOURCES = ["https://raw.githubusercontent.com/"+compte+"/"+depot+"/main/data.json",
-               "data.json"];
+    BASE_RAW = "https://raw.githubusercontent.com/"+compte+"/"+depot+"/main/";
   }
-  var q = location.search.match(/[?&]src=([^&]+)/);      /* forcer une source */
-  if(q) SOURCES = [decodeURIComponent(q[1])];
+  var q = location.search.match(/[?&]src=([^&]+)/);
+  if(q) SRC_FIXE = decodeURIComponent(q[1]);
 })();
+
+/* --- creneaux de 20 secondes -----------------------------------------
+   Les hebergeurs de fichiers gardent chaque adresse en cache plusieurs
+   minutes. Excel ecrit donc aussi sous un nom qui change toutes les 20 s
+   (live/s0.json a live/s179.json, un cycle d'une heure) : cette adresse-la
+   n'a pas servi depuis une heure, aucun cache ne la detient, la lecture est
+   donc toujours fraiche. On interroge le creneau courant et ses voisins,
+   ce qui absorbe un ecart d'horloge entre le telephone et le poste de saisie.
+   -------------------------------------------------------------------- */
+function creneau(d){ return d.getMinutes()*3 + Math.floor(d.getSeconds()/20); }
+
+function sources(){
+  if(SRC_FIXE) return [SRC_FIXE];
+  var liste = [];
+  if(BASE_RAW){
+    var s = creneau(new Date());
+    [1,0,-1,-2].forEach(function(k){
+      liste.push(BASE_RAW + "live/s" + (((s+k)%180)+180)%180 + ".json");
+    });
+    liste.push(BASE_RAW + "data.json");
+  } else {
+    liste.push("data.json");          /* page servie ailleurs : fichier a cote */
+  }
+  return liste;
+}
 
 var D = null;                 // dernier jeu de donnees valide
 var vue = "live";
@@ -575,12 +600,15 @@ function lireUne(src){
    ni celui du depot ne peut plus faire reculer l'affichage. */
 function charger(manuel){
   diag.essais++;
-  Promise.all(SOURCES.map(lireUne)).then(function(res){
+  Promise.all(sources().map(lireUne)).then(function(res){
     var best = null;
-    diag.detail = res.map(function(r){
-      return { src:r.src.replace(/^https:\/\//,"").split("?")[0],
-               maj:r.data ? r.data.maj : null, err:r.err||"" };
+    diag.interroges = res.length;
+    diag.detail = res.filter(function(r){ return r.data; }).map(function(r){
+      return { src:r.src.split("/").slice(-1)[0].split("?")[0], maj:r.data.maj, err:"" };
     });
+    if(!diag.detail.length && res.length){
+      diag.detail = [{ src:res[0].src.split("/").slice(-1)[0], maj:null, err:res[0].err||"aucune réponse" }];
+    }
     for(var i=0;i<res.length;i++){
       if(res[i].data && (!best || res[i].t > best.t)) best = res[i];
     }
@@ -611,16 +639,17 @@ function majDiag(){
   var age = "";
   if(diag.inchange>0) age = ' <span style="color:var(--down)">(identique depuis '+diag.inchange+' lectures)</span>';
   var src = diag.detail.map(function(d){
-    return '<div class="dv">'+esc(d.src)+'<br><span style="color:'
+    return '<div class="dv">'+esc(d.src)+' — <span style="color:'
       +(d.err?'var(--down)':'var(--up)')+'">'+esc(d.err || d.maj || "—")+'</span></div>';
   }).join("");
   p.innerHTML =
     '<b>Heure envoyée par Excel</b><div class="dv">'+esc(diag.derniereMaj)+age+'</div>'+
-    '<b>Sources interrogées</b>'+src+
+    '<b>Fichiers trouvés</b>'+src+
+    '<div class="dv" style="color:var(--dim2)">'+(diag.interroges||0)+' adresses interrogées</div>'+
     '<b>Dernière lecture</b><div class="dv">'+esc(diag.dernier)+
       '  ·  '+diag.recus+' réussies sur '+diag.essais+'</div>'+
-    '<div class="dh">La plus récente des deux sources est retenue. Si l\'heure envoyée par Excel '
-    +'n\'avance pas alors que le classeur affiche une heure récente, prévenez-moi.</div>';
+    '<div class="dh">La page lit plusieurs adresses et garde la plus récente. '
+    +'Les adresses sans réponse sont normales : ce sont des créneaux pas encore écrits.</div>';
 }
 
 var tmr;
