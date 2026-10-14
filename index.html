@@ -305,6 +305,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
    PERIODE : delai entre deux mises a jour, en millisecondes.
    ------------------------------------------------------------------ */
 var SRC      = "data.json";
+var VERSION  = "6 \u00b7 14/10 13h20";   /* visible dans le panneau de diagnostic */
 var PERIODE  = 20000;        /* pas de base, aligne sur les creneaux de 20 s */
 var PERIODE_CALME = 60000;   /* quand rien ne bouge depuis plusieurs minutes */
 
@@ -753,12 +754,20 @@ function lireUne(src){
   var url = src + (src.indexOf("?")<0?"?":"&") + "t=" + Date.now()
           + "." + Math.random().toString(36).slice(2,8);
   return fetch(url,{cache:"no-store"})
-    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(function(r){
+      /* 404 = aucune publication dans ce creneau. Le serveur a repondu :
+         la liaison est bonne, il n'y a simplement rien a cet emplacement. */
+      if(r.status===404){ var v=new Error("rien publié"); v.absent=true; throw v; }
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      return r.json();
+    })
     .then(function(j){
       if(!j || !j.ecrans) throw new Error("fichier illisible");
       return {src:src, data:j, t:instant(j.maj)};
     })
-    .catch(function(e){ return {src:src, err:(e&&e.message)||"indisponible"}; });
+    .catch(function(e){
+      return {src:src, err:(e&&e.message)||"indisponible", absent:!!(e&&e.absent)};
+    });
 }
 
 /* Interroge toutes les sources et retient la plus recente : ni le cache du site
@@ -796,6 +805,18 @@ function charger(manuel){
       if(res[i].data && (!best || res[i].t > best.t)) best = res[i];
     }
     if(!best){
+      /* Si au moins une adresse a repondu 404, GitHub est joignable : il n'y a
+         simplement pas eu de publication recente. Ce n'est pas une panne. */
+      var joignable = res.some(function(r){ return r.absent; });
+      if(joignable){
+        diag.erreur = ""; echecs = 0; calmes++;
+        diag.recus++; diag.dernier = new Date().toLocaleTimeString("fr-FR");
+        majEtat(true); majDiag();
+        if(!D) el("v-"+vue).innerHTML =
+          '<div class="card"><div class="empty">En attente des premiers résultats…</div></div>';
+        if(manuel) toast(D ? "Déjà à jour" : "Aucun classement publié pour l\'instant");
+        return;
+      }
       diag.erreur = res[0].err || "indisponible";
       echecs++; majEtat(false); majDiag();
       if(typeof planifier === "function") planifier();   /* reprogramme plus loin */
@@ -856,9 +877,14 @@ function majDiag(){
     '<b>Reçue par</b><div class="dv">'+esc(via)+'</div>'+
     '<b>Lectures</b><div class="dv">'+diag.recus+' réussies sur '+diag.essais+
       '  ·  dernière à '+esc(diag.dernier)+'</div>'+
+    (mn !== null && mn >= 10 && !diag.erreur
+      ? '<div class="dh" style="color:var(--or)">Aucune publication depuis '+esc(age)+
+        '. C\'est normal entre deux vagues : la page reste en liaison avec GitHub '+
+        'et affichera le prochain classement dès qu\'il sera publié.</div>' : '')+
     (diag.erreur?'<b>Dernière erreur</b><div class="dv" style="color:var(--down)">'+esc(diag.erreur)+'</div>':'')+
     '<div class="dh">Comparez l\'heure ci-dessus avec la ligne « Dernière publication » '+
-    'du classeur : si les deux correspondent, toute la chaîne fonctionne.</div>';
+    'du classeur : si les deux correspondent, toute la chaîne fonctionne.</div>'+
+    '<div class="dh" style="opacity:.65">Version de la page : '+esc(VERSION)+'</div>';
 }
 
 
