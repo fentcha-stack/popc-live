@@ -302,20 +302,23 @@ var SRC_FIXE = null;        /* source imposee par ?src= */
    -------------------------------------------------------------------- */
 function creneau(d){ return d.getMinutes()*3 + Math.floor(d.getSeconds()/20); }
 
-function sources(){
-  if(SRC_FIXE) return [SRC_FIXE];
-  var liste = [];
-  if(BASE_RAW){
-    var s = creneau(new Date());
-    [1,0,-1,-2].forEach(function(k){
-      liste.push(BASE_RAW + "live/s" + (((s+k)%180)+180)%180 + ".json");
-    });
-    liste.push(BASE_RAW + "data.json");
-  } else {
-    liste.push("data.json");          /* page servie ailleurs : fichier a cote */
+function lotsSources(large){
+  if(SRC_FIXE) return [[SRC_FIXE]];
+  if(!BASE_RAW) return [["data.json"]];
+
+  var s = creneau(new Date()), lots = [];
+  function url(d){ return BASE_RAW + "live/s" + ((((s+d)%180)+180)%180) + ".json"; }
+
+  lots.push([url(1), url(0), url(-1), url(-2)]);        /* ~80 dernieres secondes */
+  if(large){
+    for(var d=-3; d>=-18; d-=4){                        /* jusqu'a ~6 minutes */
+      lots.push([url(d), url(d-1), url(d-2), url(d-3)]);
+    }
   }
-  return liste;
+  lots.push([BASE_RAW + "data.json"]);                  /* filet */
+  return lots;
 }
+
 
 var D = null;                 // dernier jeu de donnees valide
 var vue = "live";
@@ -616,7 +619,19 @@ function lireUne(src){
    ni celui du depot ne peut plus faire reculer l'affichage. */
 function charger(manuel){
   diag.essais++;
-  Promise.all(sources().map(lireUne)).then(function(res){
+  var large = manuel || !D;
+  var lots = lotsSources(large), toutes = [];
+
+  if(large){
+    /* Un fichier de creneau se recycle toutes les heures : il peut donc
+       contenir des donnees vieilles d'une heure. En recherche large on lit
+       tout et on garde la version la plus recente, jamais la premiere. */
+    lots.forEach(function(l){ toutes = toutes.concat(l); });
+  } else {
+    toutes = lots[0].concat(lots[lots.length-1]);
+  }
+
+  Promise.all(toutes.map(lireUne)).then(function(res){
     var best = null;
     diag.interroges = res.length;
     diag.detail = res.filter(function(r){ return r.data; }).map(function(r){
