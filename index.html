@@ -316,7 +316,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
    PERIODE : delai entre deux mises a jour, en millisecondes.
    ------------------------------------------------------------------ */
 var SRC      = "data.json";
-var VERSION  = "9 \u00b7 15/10 10h10";   /* visible dans le panneau de diagnostic */
+var VERSION  = "10 \u00b7 15/10 11h55";   /* visible dans le panneau de diagnostic */
 
 /* Seuils d'alerte du panneau, en minutes. Une vague dure de 15 a 21 min
    selon le WOD : en dessous de SILENCE_NORMAL le silence est le rythme
@@ -645,7 +645,14 @@ function vueEvolution(){
              '<div class="delta '+dc+'">'+esc(dt)+'</div></div>';
     n++;
   }
-  if(!n) corps = '<div class="empty">Pas encore de classement.</div>';
+  /* Sous pli : le classeur vide le tableau et remplace le sous-titre par
+     "Dévoilé après l'annonce officielle". On le dit alors comme sur l'ecran
+     En direct, au lieu de "Pas encore de classement" qui ferait croire a
+     une panne juste apres le WOD 6. */
+  var souspli = /annonce officielle/i.test(rx ? c(e,6,2) : c(e,6,12));
+  if(!n) corps = souspli
+    ? '<div class="empty">🔒 Classement gardé secret&nbsp;: il sera annoncé en direct sur le plateau.</div>'
+    : '<div class="empty">Pas encore de classement.</div>';
 
   /* la plus forte progression n'a de sens que sur le rang cumule */
   var best = "";
@@ -667,8 +674,11 @@ function vueEvolution(){
   }
 
   var titre = parWod ? "Places sur chaque WOD" : "Places après chaque WOD";
-  var sstRX = parWod ? c(e,31,2)  : c(e,6,2);
-  var sstIN = parWod ? c(e,31,12) : c(e,6,12);
+  /* Tableau vide : pas de sous-titre. Sous pli le cadenas dit deja tout, et
+     avant le premier WOD le compteur du classeur peut annoncer un WOD qui
+     n'a pas eu lieu -- sans ligne a afficher, autant ne rien annoncer. */
+  var sstRX = (souspli || !n) ? "" : (parWod ? c(e,31,2)  : c(e,6,2));
+  var sstIN = (souspli || !n) ? "" : (parWod ? c(e,31,12) : c(e,6,12));
 
   h += carte(titre, bascule + segment("evolution", sstRX, sstIN) + corps + best);
   var note = parWod
