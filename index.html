@@ -185,6 +185,17 @@ section.on{display:block}
 .best .l{font-size:10px;font-weight:800;letter-spacing:.9px;color:var(--dim)}
 .best .v{font-size:14px;font-weight:700;margin-top:2px}
 
+/* ---------- bascule des deux lectures de l'evolution ---------- */
+.lect{display:flex;gap:7px;padding:11px 15px 0}
+.lect button{
+  flex:1;background:rgba(255,255,255,.06);border:1px solid var(--line2);color:var(--dim);
+  font:700 12.5px/1 inherit;padding:9px 12px;border-radius:999px;cursor:pointer;
+  font-family:inherit;transition:.15s
+}
+.lect button.on{background:var(--or);border-color:var(--or);color:#17120A}
+.lexp{padding:9px 15px 2px;font-size:11.5px;line-height:1.45;color:var(--dim)}
+.lexp b{color:var(--txt);font-weight:700}
+
 /* ---------- ordre de passage ---------- */
 .wsel{display:flex;gap:7px;overflow-x:auto;padding:11px 15px 12px;border-bottom:1px solid var(--line);
       -webkit-overflow-scrolling:touch;scrollbar-width:none}
@@ -305,7 +316,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
    PERIODE : delai entre deux mises a jour, en millisecondes.
    ------------------------------------------------------------------ */
 var SRC      = "data.json";
-var VERSION  = "8 \u00b7 14/10 13h50";   /* visible dans le panneau de diagnostic */
+var VERSION  = "9 \u00b7 15/10 10h10";   /* visible dans le panneau de diagnostic */
 
 /* Seuils d'alerte du panneau, en minutes. Une vague dure de 15 a 21 min
    selon le WOD : en dessous de SILENCE_NORMAL le silence est le rythme
@@ -370,6 +381,9 @@ function lotsSources(large){
 var D = null;                 // dernier jeu de donnees valide
 var vue = "live";
 var cat = { live:"RX", resultats:"RX", journees:"RX", evolution:"RX", palmares:"RX" };
+/* ecran Evolution : "general" = rang cumule (lignes 8-23 du classeur),
+   "parwod" = place obtenue sur chaque epreuve (lignes 33-48). */
+var lectureEvo = "general";
 var echecs = 0;
 
 /* ---------- acces aux cellules : c(ecran, ligne Excel, colonne Excel) ---------- */
@@ -587,13 +601,24 @@ function vueJournees(){
   el("v-journees").innerHTML = h + '<div class="note">'+esc(c(e,25,2))+'</div>';
 }
 
+/* le second tableau existe-t-il dans ce qui a ete publie ? */
+function parWodDispo(){
+  for(var r=33;r<=48;r++){ if(c("evolution",r,3) || c("evolution",r,13)) return true; }
+  return false;
+}
+
 function vueEvolution(){
   var e="evolution", a=cat.evolution, h="";
   var rx=(a==="RX");
+  var dispo = parWodDispo();
+  if(!dispo) lectureEvo = "general";
+  var parWod = (lectureEvo === "parwod");
+  /* le tableau "par WOD" est le meme, 25 lignes plus bas, sans colonne +/- */
+  var dec = parWod ? 25 : 0;
   var cRk=rx?2:12, cNm=rx?3:13, c1=rx?4:14, cD=rx?10:20;
 
   var corps="",n=0;
-  for(var r=8;r<=23;r++){
+  for(var r=8+dec;r<=23+dec;r++){
     var nom=c(e,r,cNm); if(!nom) continue;
     var t="",dernier=-1,places=[];
     for(var w=0;w<6;w++){ places.push(c(e,r,c1+w)); if(places[w]) dernier=w; }
@@ -604,7 +629,7 @@ function vueEvolution(){
     }
     /* la cellule arrive deja mise en forme par Excel ("▲ 2", "▼ 3", "="),
        mais elle peut aussi arriver en nombre brut : on accepte les deux. */
-    var d=String(c(e,r,cD)||"").trim(), dc="e", dt="";
+    var d=parWod ? "" : String(c(e,r,cD)||"").trim(), dc="e", dt="";
     if(d){
       if(d.indexOf("▲")>=0){ dc="u"; dt=d; }
       else if(d.indexOf("▼")>=0){ dc="d"; dt=d; }
@@ -622,12 +647,36 @@ function vueEvolution(){
   }
   if(!n) corps = '<div class="empty">Pas encore de classement.</div>';
 
-  var bl = rx?c(e,25,2):c(e,25,12), bv = rx?c(e,26,2):c(e,26,12);
-  var best = (bv && bv!=="—") ? '<div class="best"><div><div class="l">'+esc(bl)+'</div><div class="v">'+esc(bv)+'</div></div></div>' : "";
+  /* la plus forte progression n'a de sens que sur le rang cumule */
+  var best = "";
+  if(!parWod){
+    var bl = rx?c(e,25,2):c(e,25,12), bv = rx?c(e,26,2):c(e,26,12);
+    if(bv && bv!=="—") best = '<div class="best"><div><div class="l">'+esc(bl)+
+                              '</div><div class="v">'+esc(bv)+'</div></div></div>';
+  }
 
-  h += carte("Places après chaque WOD",
-        segment("evolution", c(e,6,2), c(e,6,12)) + corps + best);
-  el("v-evolution").innerHTML = h + '<div class="note">'+esc(c(e,28,2))+'</div>';
+  /* selecteur des deux lectures, affiche seulement si le classeur publie les deux */
+  var bascule = "";
+  if(dispo){
+    bascule = '<div class="lect">'+
+      '<button data-lect="general"'+(parWod?'':' class="on"')+'>Au général</button>'+
+      '<button data-lect="parwod"'+(parWod?' class="on"':'')+'>Par WOD</button>'+
+      '</div><div class="lexp">'+ (parWod
+        ? 'Sa place <b>sur chaque épreuve</b>, prise séparément.'
+        : 'Sa place au classement après chaque WOD, <b>points cumulés</b>.') + '</div>';
+  }
+
+  var titre = parWod ? "Places sur chaque WOD" : "Places après chaque WOD";
+  var sstRX = parWod ? c(e,31,2)  : c(e,6,2);
+  var sstIN = parWod ? c(e,31,12) : c(e,6,12);
+
+  h += carte(titre, bascule + segment("evolution", sstRX, sstIN) + corps + best);
+  var note = parWod
+    ? "Place obtenue sur chaque épreuve terminée, dans la catégorie — sauf le WOD 1, "+
+      "qui classe les 32 équipes ensemble. Le numéro à gauche reste la position au "+
+      "classement général."
+    : c(e,28,2);
+  el("v-evolution").innerHTML = h + '<div class="note">'+esc(note)+'</div>';
 }
 
 /* ---------- ordre de passage ---------- */
@@ -918,6 +967,13 @@ el("nav").addEventListener("click",function(ev){
   var b=ev.target.closest("button"); if(!b) return;
   allerA(b.dataset.v);
   window.scrollTo({top:0,behavior:"smooth"});
+});
+
+/* bascule entre les deux lectures de l'ecran Evolution */
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest(".lect button"); if(!b) return;
+  lectureEvo = b.dataset.lect;
+  vueEvolution();
 });
 
 /* choix du WOD dans l'ordre de passage */
