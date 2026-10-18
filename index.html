@@ -274,6 +274,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
     <button data-v="live" class="on">En direct</button>
     <button data-v="wod">Le WOD</button>
     <button data-v="resultats">Résultats</button>
+    <button data-v="parwod">Par WOD</button>
     <button data-v="palmares">Palmarès</button>
     <button data-v="journees">Journées</button>
     <button data-v="evolution">Évolution</button>
@@ -285,6 +286,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
   <section id="v-live" class="on"></section>
   <section id="v-wod"></section>
   <section id="v-resultats"></section>
+  <section id="v-parwod"></section>
   <section id="v-palmares"></section>
   <section id="v-journees"></section>
   <section id="v-evolution"></section>
@@ -316,7 +318,7 @@ footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;
    PERIODE : delai entre deux mises a jour, en millisecondes.
    ------------------------------------------------------------------ */
 var SRC      = "data.json";
-var VERSION  = "10 \u00b7 15/10 11h55";   /* visible dans le panneau de diagnostic */
+var VERSION  = "11 \u00b7 18/10 04h20";   /* visible dans le panneau de diagnostic */
 
 /* Seuils d'alerte du panneau, en minutes. Une vague dure de 15 a 21 min
    selon le WOD : en dessous de SILENCE_NORMAL le silence est le rythme
@@ -380,7 +382,8 @@ function lotsSources(large){
 
 var D = null;                 // dernier jeu de donnees valide
 var vue = "live";
-var cat = { live:"RX", resultats:"RX", journees:"RX", evolution:"RX", palmares:"RX" };
+var cat = { live:"RX", resultats:"RX", journees:"RX", evolution:"RX", palmares:"RX",
+            parwod:"RX" };
 /* ecran Evolution : "general" = rang cumule (lignes 8-23 du classeur),
    "parwod" = place obtenue sur chaque epreuve (lignes 33-48). */
 var lectureEvo = "general";
@@ -777,10 +780,68 @@ function vuePassage(){
     'et peuvent glisser selon le déroulé de la compétition.</div>';
 }
 
+/* ---------- resultats de chaque WOD ---------- */
+/* feuille "Classement par WOD" : 6 blocs de 21 lignes, titre en 7, 28, 49... */
+var W_BLOCS = [7,28,49,70,91,112];
+var wodRes = -1;                       /* -1 = dernier WOD termine */
+
+/* blocs reellement remplis, dans l'ordre */
+function parwodBlocs(){
+  var t=[];
+  for(var i=0;i<W_BLOCS.length;i++){
+    var L=W_BLOCS[i], nom=c("parwod",L,2);
+    if(!nom) continue;
+    var n=0;
+    for(var k=3;k<=18;k++){ if(c("parwod",L+k,3) || c("parwod",L+k,8)) n++; }
+    if(n) t.push({ligne:L, nom:nom, num:i+1});
+  }
+  return t;
+}
+function parwodDispo(){ return parwodBlocs().length>0; }
+
+function vueParwod(){
+  var blocs=parwodBlocs();
+  if(!blocs.length){
+    el("v-parwod").innerHTML = carte("Résultats par WOD",
+      '<div class="empty">Aucun WOD terminé pour l\'instant.</div>');
+    return;
+  }
+  var idx=blocs.length-1;              /* par defaut le dernier WOD termine */
+  for(var i=0;i<blocs.length;i++){ if(blocs[i].ligne===wodRes) idx=i; }
+  var B=blocs[idx];
+
+  var onglets='<div class="wsel">';
+  for(var w=0;w<blocs.length;w++){
+    onglets += '<button data-wres="'+blocs[w].ligne+'"'+(w===idx?' class="on"':'')+
+               '>WOD '+blocs[w].num+'</button>';
+  }
+  onglets += '</div>';
+
+  /* Le WOD 6 donne les points qui font le classement final : on le garde sous
+     pli tant que l'ecran Evolution annonce que le general n'est pas devoile. */
+  var rx = (cat.parwod === "RX");
+  var souspli = (B.num === 6) &&
+                /annonce officielle/i.test(rx ? c("evolution",6,2) : c("evolution",6,12));
+
+  var corps = souspli
+    ? '<div class="empty">🔒 Résultats du WOD 6 gardés secrets&nbsp;: ils seront '+
+      'annoncés en direct sur le plateau.</div>'
+    : (rx ? tableau("parwod",[2,3,4,5],  B.ligne+3, B.ligne+18)
+          : tableau("parwod",[7,8,9,10], B.ligne+3, B.ligne+18));
+
+  var sstRX = souspli ? "" : c("parwod", B.ligne+1, 2);
+  var sstIN = souspli ? "" : c("parwod", B.ligne+1, 7);
+
+  el("v-parwod").innerHTML =
+    carte(B.nom || ("WOD "+B.num), onglets + segment("parwod", sstRX, sstIN) + corps) +
+    '<div class="note">Classement sur cette épreuve seule, et points gagnés dessus. ' +
+    'Le WOD 1 classe les 32 équipes ensemble ; les suivants séparent RX et INTER.</div>';
+}
+
 /* ============================ MOTEUR ============================ */
 var RENDU = { live:vueLive, wod:vueWod, resultats:vueResultats,
               palmares:vuePalmares, journees:vueJournees, evolution:vueEvolution,
-              passage:vuePassage };
+              passage:vuePassage, parwod:vueParwod };
 
 function dessiner(){
   if(!D) return;
@@ -790,6 +851,12 @@ function dessiner(){
     var ok=passageDispo();
     bp.hidden=!ok;
     if(!ok && vue==="passage"){ allerA("live"); return; }
+  }
+  var bw=document.querySelector('nav button[data-v="parwod"]');
+  if(bw){
+    var okw=parwodDispo();
+    bw.hidden=!okw;
+    if(!okw && vue==="parwod"){ allerA("live"); return; }
   }
   el("hTitre").textContent = D.titre || "PEARL OF PACIFIC CONTEST";
   el("hDates").textContent = D.dates || "";
@@ -989,8 +1056,15 @@ document.addEventListener("click",function(ev){
 /* choix du WOD dans l'ordre de passage */
 document.addEventListener("click",function(ev){
   var b=ev.target.closest(".wsel button"); if(!b) return;
+  if(!b.dataset.wod) return;              /* pas le selecteur de l'ordre de passage */
   wodSel=parseInt(b.dataset.wod,10);
   vuePassage();
+});
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest(".wsel button"); if(!b) return;
+  if(!b.dataset.wres) return;
+  wodRes=parseInt(b.dataset.wres,10);
+  vueParwod();
 });
 
 /* bascule RX / INTER */
