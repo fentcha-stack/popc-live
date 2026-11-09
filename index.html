@@ -5,1151 +5,649 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0B1A30">
 <title>Pearl Of Pacific Contest — En direct</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Inter:wght@400;500;600;700;800&display=swap">
 <style>
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+[hidden]{display:none!important}
+:root{padding-top:env(safe-area-inset-top,0px)}
+/* Mise en page : une colonne de telephone, cartes empilees, barre de navigation fixe en bas. Look unique, sombre, aux couleurs POPC. */
 :root{
-  --bg:#071324; --bg2:#0B1A30; --panel:#12294A; --panel2:#17325A;
-  --line:rgba(255,255,255,.10); --line2:rgba(255,255,255,.16);
-  --txt:#EAF2FF; --dim:#92A8C9; --dim2:#6D85A8;
-  --or:#F28C28; --bleu:#2E75B6; --bleuc:#4D9BE0;
-  --gold:#E8B923; --silver:#C5CED6; --bronze:#D08B5B;
-  --up:#36C98A; --down:#E8614C;
-  --safe:env(safe-area-inset-bottom,0px);
+  color-scheme: dark;
+  --bg:#0B1A30; --panel:#12294A; --panel2:#1B3558; --line:#1E3A63; --hl:#24406B;
+  --fg:#FFFFFF; --mut:#A9B8CE; --dim:#7F8FA8;
+  --acc:#F5922A; --accfg:#1A1206;
+  --ok:#4ADE80; --okbg:#123D2B; --inter:#7DBBF5;
+  --warnbg:#3B2A0F; --warnfg:#FFD9A8;
+  --or:#F2C230; --argent:#D5DBE5; --bronze:#E0A070;
+  --corps:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --chiffre:"Barlow Condensed","Arial Narrow","Roboto Condensed",sans-serif;
 }
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0}
-body{
-  background:var(--bg);
-  background-image:radial-gradient(120% 60% at 50% 0%,#15305A 0%,var(--bg2) 42%,var(--bg) 100%);
-  background-attachment:fixed;
-  color:var(--txt);
-  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  font-size:16px;line-height:1.35;
-  padding-bottom:calc(28px + var(--safe));
-  overflow-x:hidden;
-}
-.num{font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+html,body{background:var(--bg)}
+body{color:var(--fg);font-family:var(--corps);font-size:14px;line-height:1.4;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+*{box-sizing:border-box}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+#app{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px;padding-block:10px 96px}
 
-/* ---------- en-tete ---------- */
-header{
-  position:sticky;top:0;z-index:20;
-  background:linear-gradient(180deg,rgba(7,19,36,.97) 60%,rgba(7,19,36,.86) 100%);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line);
-  padding:10px 16px 0;
-}
-.brand{display:flex;align-items:center;gap:10px}
-.mark{
-  width:30px;height:30px;flex:0 0 30px;border-radius:9px;
-  background:linear-gradient(145deg,var(--or),#C96A12);
-  display:grid;place-items:center;font-weight:900;font-size:9.5px;letter-spacing:0;color:#1A0E02;
-}
-.brand h1{margin:0;font-size:15px;font-weight:800;letter-spacing:.3px;line-height:1.1}
-.brand .sub{font-size:11.5px;color:var(--dim);margin-top:1px}
-.live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--dim);white-space:nowrap;
-  background:none;border:0;padding:4px 2px;font-family:inherit;cursor:pointer}
-#diag{background:rgba(0,0,0,.32);border:1px solid var(--line);border-radius:11px;padding:11px 13px;margin:2px 0 9px;font-size:11.5px}
-#diag b{display:block;color:var(--dim2);font-size:9.5px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;margin-top:7px}
-#diag b:first-child{margin-top:0}
-#diag .dv{color:var(--txt);word-break:break-all;line-height:1.4;margin-top:2px}
-#diag .dh{color:var(--dim2);margin-top:10px;line-height:1.5;border-top:1px solid var(--line);padding-top:8px}
-.dot{width:7px;height:7px;border-radius:50%;background:var(--up);box-shadow:0 0 0 0 rgba(54,201,138,.6);animation:pulse 2.4s infinite}
-.dot.off{background:var(--dim2);animation:none;box-shadow:none}
-.refresh{
-  flex:0 0 auto;margin-left:8px;width:34px;height:34px;border-radius:10px;cursor:pointer;
-  background:rgba(255,255,255,.06);border:1px solid var(--line);color:var(--dim);
-  display:grid;place-items:center;transition:.15s;-webkit-appearance:none;appearance:none;
-}
-.refresh:active{background:var(--or);border-color:var(--or);color:#1A0E02}
-.refresh.tourne svg{animation:spin .7s ease}
-@keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-.maj-flash{animation:flash 1.1s ease}
-@keyframes flash{0%{background:rgba(54,201,138,.30)}100%{background:transparent}}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(54,201,138,.55)}70%{box-shadow:0 0 0 8px rgba(54,201,138,0)}100%{box-shadow:0 0 0 0 rgba(54,201,138,0)}}
+.demo{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px dashed var(--dim);font-size:12px;color:var(--mut)}
+.demo select{background:var(--panel);border:1px solid var(--line);border-radius:8px;min-height:36px;padding:0 8px;color:var(--fg)}
+.entete{display:flex;align-items:center;gap:10px}
+.logo{width:36px;height:36px;border-radius:9px;background:var(--acc);color:var(--accfg);font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex:none}
+.entete .t{flex:1;min-width:0}
+.entete .n{font-weight:800;font-size:15px;letter-spacing:.2px;text-transform:uppercase}
+.entete .d{font-size:12px;color:var(--mut)}
+.maj{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);white-space:nowrap;background:transparent;border:0;min-height:44px;padding:0 0 0 6px}
+.maj i{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.maj.off i{background:var(--dim)}
+.diag{font-size:12px;gap:6px}
+.diag b{font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}
+.diag div{overflow-wrap:anywhere}
+.diag button{align-self:flex-start;min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--panel2);font-weight:700}
+@media (prefers-reduced-motion:no-preference){.flash{animation:flash 1s ease}}
+@keyframes flash{from{opacity:.45}to{opacity:1}}
 
-nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:10px -16px 0;padding:0 16px 9px}
-nav::-webkit-scrollbar{display:none}
-nav button{
-  flex:0 0 auto;border:1px solid var(--line);background:rgba(255,255,255,.04);
-  color:var(--dim);font:600 13px/1 inherit;padding:9px 14px;border-radius:999px;cursor:pointer;
-  transition:.15s;
-}
-nav button.on{background:var(--or);border-color:var(--or);color:#1A0E02;font-weight:800}
+.carte{background:var(--panel);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.carte.serre{padding:0;gap:0;overflow:hidden}
+.et{font-size:11px;font-weight:700;letter-spacing:1px;color:var(--mut);text-transform:uppercase}
+.rangee{display:flex;align-items:center;gap:8px}
+.pousse{flex:1}
+h1{margin:0;font-size:22px;font-weight:800;text-wrap:balance}
+.sous{font-size:13px;color:var(--mut)}
+.num{font-family:var(--chiffre);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.3px}
 
-/* ---------- structure ---------- */
-main{padding:14px 14px 0;max-width:620px;margin:0 auto}
-section{display:none;animation:fade .25s ease}
-section.on{display:block}
-@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.bandeau{display:flex;align-items:center;gap:8px;padding:10px 12px;border-radius:12px;background:var(--warnbg);border:1px solid var(--acc);color:var(--warnfg);font-size:13px;font-weight:600}
+.verrou{display:flex;align-items:center;gap:10px;padding:12px;border-radius:12px;background:var(--panel2);font-size:13px;color:var(--mut)}
 
-.card{
-  background:linear-gradient(180deg,var(--panel) 0%,#102343 100%);
-  border:1px solid var(--line);border-radius:16px;
-  margin-bottom:14px;overflow:hidden;
-  box-shadow:0 1px 0 rgba(255,255,255,.05) inset,0 10px 26px rgba(0,0,0,.33);
-}
-.card > h2{
-  margin:0;padding:13px 15px 11px;font-size:13px;font-weight:800;
-  letter-spacing:.9px;text-transform:uppercase;color:var(--txt);
-  border-bottom:1px solid var(--line);
-  display:flex;align-items:baseline;gap:8px;
-}
-.card > h2 .accent{width:3px;height:14px;border-radius:2px;background:var(--or);flex:0 0 3px;align-self:center}
-.card > h2 small{margin-left:auto;font-size:11px;font-weight:600;letter-spacing:.2px;color:var(--dim);text-transform:none}
-.pad{padding:13px 15px}
-.note{font-size:11.5px;color:var(--dim2);padding:0 2px 16px;line-height:1.5}
+.moi{background:var(--panel2);border:1.5px solid var(--acc);border-radius:14px;padding:14px;display:flex;flex-direction:column;gap:10px;text-align:left;width:100%}
+.moi .nom{font-size:22px;font-weight:800}
+.proch{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;background:var(--bg)}
+.proch .h{font-family:var(--chiffre);font-size:26px;font-weight:700;color:var(--acc);white-space:nowrap}
+.proch .x{font-size:13px;line-height:1.35}
+.inviter{border:1.5px dashed var(--acc);background:transparent;border-radius:14px;min-height:56px;padding:10px 14px;color:var(--acc);font-weight:700;width:100%;display:flex;align-items:center;gap:10px;text-align:left}
 
-/* ---------- segmented RX / INTER ---------- */
-.seg{display:flex;gap:4px;padding:10px 12px;background:rgba(0,0,0,.18);border-bottom:1px solid var(--line)}
-.seg button{
-  flex:1;border:1px solid transparent;background:transparent;color:var(--dim);
-  font:700 12.5px/1 inherit;letter-spacing:.7px;padding:9px 6px;border-radius:9px;cursor:pointer;transition:.15s
-}
-.seg button.on{background:var(--panel2);border-color:var(--line2);color:var(--txt)}
-.seg button.on[data-cat="RX"]{box-shadow:inset 0 -2px 0 var(--or)}
-.seg button.on[data-cat="INTER"]{box-shadow:inset 0 -2px 0 var(--bleuc)}
-.subt{padding:9px 15px 0;font-size:11.5px;color:var(--dim);letter-spacing:.3px}
+.pill{font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--okbg);color:var(--ok)}
+.pill.att{background:var(--bg);color:var(--mut)}
+.pill.tc{background:var(--warnbg);color:var(--warnfg)}
+.cat-INTER{color:var(--inter)} .cat-RX{color:var(--acc)}
+.badge{font-size:12px;font-weight:800;padding:3px 9px;border-radius:6px;background:var(--acc);color:var(--accfg)}
+.badge.INTER{background:var(--inter)}
 
-/* ---------- lignes de classement ---------- */
-.rows{padding:5px 0 9px}
-.row{
-  display:grid;grid-template-columns:34px 1fr auto;align-items:center;
-  gap:10px;padding:8px 15px;border-bottom:1px solid rgba(255,255,255,.045);
-}
-.row:last-child{border-bottom:0}
-.row .rk{
-  font:800 15px/1 inherit;text-align:center;color:var(--dim);
-  font-variant-numeric:tabular-nums;
-}
-.row.p1 .rk,.row.p2 .rk,.row.p3 .rk{
-  width:28px;height:28px;margin:0 3px;border-radius:9px;display:grid;place-items:center;color:#10233E;font-size:14px
-}
-.row.p1 .rk{background:linear-gradient(145deg,#F6D34A,var(--gold))}
-.row.p2 .rk{background:linear-gradient(145deg,#E2E9EF,var(--silver))}
-.row.p3 .rk{background:linear-gradient(145deg,#E3A877,var(--bronze))}
-.row .nm{font-size:14.5px;font-weight:600;letter-spacing:.1px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.row .rt{display:flex;align-items:baseline;gap:9px;justify-content:flex-end;white-space:nowrap}
-.row .perf{font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
-.row .pts{font-size:15px;font-weight:800;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
-.row .gap{font-size:11.5px;color:var(--dim2);font-variant-numeric:tabular-nums}
-.row.p1 .pts{color:var(--gold)}
+.couloirs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.couloir{display:flex;align-items:center;gap:8px;padding:9px 10px;border-radius:10px;background:var(--panel2);min-width:0}
+.couloir b{width:22px;height:22px;border-radius:6px;background:var(--bg);color:var(--mut);font-size:12px;display:flex;align-items:center;justify-content:center;flex:none}
+.couloir span{font-size:13px;font-weight:600;min-width:0;overflow-wrap:anywhere}
+.couloir.moi-c{background:var(--acc);color:var(--accfg)}
+.couloir.moi-c b{background:var(--accfg);color:var(--acc)}
+.couloir.moi-c span{font-weight:800}
 
-/* ---------- vagues ---------- */
-.wave{padding:12px 15px;border-bottom:1px solid var(--line)}
-.wave:last-child{border-bottom:0}
-.wave .lbl{font-size:10.5px;font-weight:800;letter-spacing:1.1px;color:var(--or)}
-.wave.w2 .lbl{color:var(--bleuc)}
-.wave.w3 .lbl{color:var(--dim)}
-.wave .when{font-size:13.5px;font-weight:700;margin:3px 0 9px}
-.lanes{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.lane{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.2);border:1px solid var(--line);border-radius:9px;padding:7px 9px;min-width:0}
-.lane b{font-size:10px;font-weight:800;color:var(--dim2);flex:0 0 auto}
-.lane span{font-size:12.5px;line-height:1.25;overflow-wrap:anywhere}
+.vague{display:flex;gap:10px;align-items:baseline;padding:10px 12px;border-top:1px solid var(--line)}
+.vague:first-child{border-top:0}
+.vague .h{width:64px;flex:none;font-family:var(--chiffre);font-size:18px;font-weight:700;color:var(--acc);white-space:nowrap}
+.vague.finie .h{color:var(--dim)}
+.vague .v{font-size:14px;font-weight:600}
+.vague .e{font-size:12px;color:var(--mut);line-height:1.4}
+.vague.amoi{background:var(--hl)}
 
-/* ---------- descriptif WOD ---------- */
-.wodhead{padding:14px 15px 0}
-.wodhead .t{font-size:19px;font-weight:800;letter-spacing:.2px}
-.wodhead .s{font-size:12.5px;color:var(--dim);margin-top:4px}
-.wodbox{margin:12px 15px 15px;border-radius:12px;border:1px solid var(--line);overflow:hidden}
-.wodbox .cat{padding:9px 13px;font:800 12px/1.3 inherit;letter-spacing:1px}
-.wodbox.rx .cat{background:rgba(242,140,40,.17);color:#FFC489;border-bottom:1px solid rgba(242,140,40,.3)}
-.wodbox.inter .cat{background:rgba(77,155,224,.15);color:#A9D2F6;border-bottom:1px solid rgba(77,155,224,.3)}
-.wodbox pre{
-  margin:0;padding:13px;font:400 14px/1.6 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  white-space:pre-wrap;word-break:break-word;background:rgba(0,0,0,.2);color:#DCE8F8
-}
+.ligne{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 12px;border-top:1px solid var(--line);background:transparent;border-left:0;border-right:0;border-bottom:0;width:100%;text-align:left}
+.ligne:first-child{border-top:0}
+.ligne.moi-l{background:var(--hl)}
+.pos{width:26px;height:26px;border-radius:7px;background:var(--bg);color:var(--mut);font-size:13px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;font-variant-numeric:tabular-nums}
+.pos.p1{background:var(--or);color:var(--accfg)} .pos.p2{background:var(--argent);color:var(--accfg)} .pos.p3{background:var(--bronze);color:var(--accfg)}
+.ligne .nm{flex:1;min-width:0;font-size:14px;font-weight:600;overflow-wrap:anywhere}
+.ligne .pf{font-size:13px;color:var(--mut);white-space:nowrap;font-variant-numeric:tabular-nums}
+.ligne .pt{width:40px;text-align:right;font-family:var(--chiffre);font-size:19px;font-weight:700}
+.ligne .ec{width:40px;text-align:right;font-size:12px;color:var(--mut);font-variant-numeric:tabular-nums}
+.etoile{flex:none}
+.lien{display:flex;align-items:center;justify-content:center;min-height:44px;font-size:13px;font-weight:600;color:var(--acc);background:transparent;border:0;width:100%}
 
-/* ---------- tableau indicateurs / faits ---------- */
-.kv{display:grid;grid-template-columns:1fr auto;gap:2px 12px;padding:4px 0 10px}
-.kv .k{padding:9px 15px 2px;font-size:11.5px;color:var(--dim2);grid-column:1/-1;letter-spacing:.3px}
-.kv .v{display:grid;grid-template-columns:38px 1fr;gap:9px;align-items:baseline;padding:2px 15px 7px;grid-column:1/-1}
-.kv .v b{font-size:10px;font-weight:800;letter-spacing:.8px}
-.kv .v.rx b{color:var(--or)} .kv .v.it b{color:var(--bleuc)}
-.kv .v span{font-size:13.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;padding:4px;border-radius:12px;background:var(--panel)}
+.seg button{min-height:44px;border:0;border-radius:9px;background:transparent;color:var(--mut);font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--acc);color:var(--accfg);font-weight:700}
+.seg.doux button[aria-pressed="true"]{background:var(--hl);color:var(--fg)}
+.wsel{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.wsel button{min-height:44px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--mut);font-weight:600}
+.wsel button.encours{border-color:var(--ok);color:var(--ok)}
+.wsel button.avenir{background:var(--bg);color:var(--dim)}
+.wsel button[aria-pressed="true"]{background:var(--acc);border-color:var(--acc);color:var(--accfg);font-weight:800}
+.rech{display:flex;align-items:center;gap:8px;padding:0 12px;min-height:44px;border-radius:12px;background:var(--panel);border:1px solid var(--line)}
+.rech input{flex:1;min-width:0;background:transparent;border:0;outline:0}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 
-/* ---------- evolution ---------- */
-.evo{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:center;padding:9px 15px;border-bottom:1px solid rgba(255,255,255,.045)}
-.evo:last-child{border-bottom:0}
-.evo .rk{font:800 14px/1 inherit;color:var(--dim);text-align:center;font-variant-numeric:tabular-nums}
-.evo .nm{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.evo .trk{display:flex;align-items:center;gap:3px;margin-top:4px;flex-wrap:wrap}
-.evo .trk i{
-  font-style:normal;font-size:10.5px;font-weight:700;color:var(--dim);
-  background:rgba(255,255,255,.07);border-radius:5px;padding:2px 5px;min-width:19px;text-align:center;
-  font-variant-numeric:tabular-nums
-}
-.evo .trk i.last{background:rgba(242,140,40,.22);color:#FFC489}
-.evo .trk em{font-style:normal;color:var(--dim2);font-size:9px}
-.delta{font:800 13px/1 inherit;font-variant-numeric:tabular-nums;white-space:nowrap}
-.delta.u{color:var(--up)} .delta.d{color:var(--down)} .delta.e{color:var(--dim2)}
-.best{display:flex;align-items:center;gap:10px;padding:12px 15px;background:rgba(54,201,138,.08);border-top:1px solid var(--line)}
-.best .l{font-size:10px;font-weight:800;letter-spacing:.9px;color:var(--dim)}
-.best .v{font-size:14px;font-weight:700;margin-top:2px}
+.tuiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px}
+.tuile{padding:10px 8px;border-radius:12px;background:var(--panel);text-align:center;min-width:0}
+.tuile .g{font-family:var(--chiffre);font-size:26px;font-weight:700;line-height:1.05}
+.tuile .l{font-size:11px;color:var(--mut)}
+.chips{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.chip{padding:5px 10px;border-radius:8px;background:var(--bg);font-weight:700;font-size:13px;font-variant-numeric:tabular-nums}
+.chip.der{background:var(--okbg);color:var(--ok)}
+.desc{white-space:pre-wrap;font-size:14px;line-height:1.55;overflow-wrap:anywhere}
+.retour{width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:transparent;border:0;color:var(--mut)}
+.suivre{min-height:44px;padding:0 14px;display:flex;align-items:center;gap:7px;border-radius:999px;border:1.5px solid var(--acc);background:transparent;color:var(--acc);font-weight:700}
+.suivre[aria-pressed="true"]{background:var(--panel2)}
+.vide{padding:18px 12px;text-align:center;color:var(--mut);font-size:13px}
+.note{font-size:12px;color:var(--mut);line-height:1.45}
+.fait{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-top:1px solid var(--line)}
+.fait:first-child{border-top:0}
 
-/* ---------- bascule des deux lectures de l'evolution ---------- */
-.lect{display:flex;gap:7px;padding:11px 15px 0}
-.lect button{
-  flex:1;background:rgba(255,255,255,.06);border:1px solid var(--line2);color:var(--dim);
-  font:700 12.5px/1 inherit;padding:9px 12px;border-radius:999px;cursor:pointer;
-  font-family:inherit;transition:.15s
-}
-.lect button.on{background:var(--or);border-color:var(--or);color:#17120A}
-.lexp{padding:9px 15px 2px;font-size:11.5px;line-height:1.45;color:var(--dim)}
-.lexp b{color:var(--txt);font-weight:700}
-
-/* ---------- ordre de passage ---------- */
-.wsel{display:flex;gap:7px;overflow-x:auto;padding:11px 15px 12px;border-bottom:1px solid var(--line);
-      -webkit-overflow-scrolling:touch;scrollbar-width:none}
-.wsel::-webkit-scrollbar{display:none}
-.wsel button{
-  flex:0 0 auto;background:rgba(255,255,255,.06);border:1px solid var(--line2);color:var(--dim);
-  font:700 12.5px/1 inherit;padding:9px 15px;border-radius:999px;cursor:pointer;white-space:nowrap;
-  font-family:inherit;transition:.15s
-}
-.wsel button.on{background:var(--or);border-color:var(--or);color:#17120A}
-.pstate{padding:10px 15px;font-size:12px;color:var(--dim);display:flex;gap:7px;align-items:baseline;flex-wrap:wrap}
-.pstate b{color:var(--txt);font-size:13px;font-weight:700}
-.pstate .prov{color:#F0B860}
-.vg{border-top:1px solid var(--line)}
-.vg:first-of-type{border-top:0}
-.vg-h{display:flex;align-items:center;gap:8px;padding:10px 15px 8px;flex-wrap:wrap}
-.vg-h .t{font-size:14px;font-weight:800;letter-spacing:.2px}
-.vg-h .b{font-size:9.5px;font-weight:800;letter-spacing:.9px;padding:3px 7px;border-radius:5px}
-.vg-h .b.rx{background:rgba(242,140,40,.2);color:#FFC489}
-.vg-h .b.it{background:rgba(94,160,255,.18);color:#A8CCFF}
-.vg-h .hr{margin-left:auto;font-size:14px;font-weight:800;color:var(--or);font-variant-numeric:tabular-nums}
-.vg-h .st{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--dim2);
-          border:1px solid var(--line2);border-radius:999px;padding:2px 8px}
-.vg.encours{background:rgba(54,201,138,.06)}
-.vg.encours .st{color:var(--up);border-color:rgba(54,201,138,.45)}
-.vg.finie .vg-h .t,.vg.finie .vg-h .hr{opacity:.55}
-.vg-c{padding:0 15px 11px;display:grid;grid-template-columns:1fr 1fr;gap:6px}
-.cl{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.045);
-    border-radius:8px;padding:8px 10px;min-width:0}
-.cl .n{flex:0 0 auto;width:18px;height:18px;border-radius:5px;background:rgba(255,255,255,.1);
-       color:var(--dim);font:800 10px/18px inherit;text-align:center}
-/* le nom doit etre lisible en entier : on passe a la ligne plutot que de couper */
-.cl .e{font-size:12.5px;font-weight:600;line-height:1.3;min-width:0;overflow-wrap:anywhere}
-.cl.vide{opacity:.35}
-@media (max-width:360px){ .vg-c{grid-template-columns:1fr} }
-
-/* ---------- divers ---------- */
-.empty{padding:26px 15px;text-align:center;color:var(--dim2);font-size:13.5px}
-.lines{padding:4px 15px 14px}
-.lines div{font-size:13.5px;color:#CFE0F5;padding:3px 0}
-.lines div:first-child{font-size:16px;font-weight:800;color:var(--txt);padding-bottom:5px}
-footer{text-align:center;color:var(--dim2);font-size:11px;padding:6px 16px 22px;line-height:1.6}
-#toast{
-  position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + var(--safe));
-  background:#1C3157;border:1px solid var(--line2);color:var(--txt);
-  font-size:12.5px;padding:9px 16px;border-radius:999px;opacity:0;pointer-events:none;transition:.3s;z-index:40;
-  box-shadow:0 8px 24px rgba(0,0,0,.4)
-}
-#toast.on{opacity:1}
-@media (min-width:560px){
-  .row .nm{font-size:15.5px}
-  .lanes{grid-template-columns:1fr 1fr}
-}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#0E2140;border-top:1px solid var(--line);
+  padding:4px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+nav .in{max-width:560px;margin:0 auto;display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}
+nav a{min-height:56px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:11px;font-weight:600;color:var(--mut);text-decoration:none}
+nav a[aria-current="page"]{color:var(--acc);font-weight:700}
+@media (prefers-reduced-motion:no-preference){.ligne,.seg button,.wsel button{transition:background-color .12s}}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="brand">
-    <div class="mark">POPC</div>
-    <div>
-      <h1 id="hTitre">PEARL OF PACIFIC CONTEST</h1>
-      <div class="sub" id="hDates">—</div>
-    </div>
-    <button class="live" id="hLive" title="Détails techniques"><span class="dot" id="hDot"></span><span id="hMaj">chargement…</span></button>
-    <button class="refresh" id="hRefresh" title="Actualiser maintenant" aria-label="Actualiser">
-      <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor"
-           stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 12a9 9 0 1 1-3.2-6.9"/><path d="M21 3v6h-6"/>
-      </svg>
-    </button>
-  </div>
-  <div id="diag" hidden></div>
-  <nav id="nav">
-    <button data-v="live" class="on">En direct</button>
-    <button data-v="wod">Le WOD</button>
-    <button data-v="resultats">Résultats</button>
-    <button data-v="parwod">Par WOD</button>
-    <button data-v="palmares">Palmarès</button>
-    <button data-v="journees">Journées</button>
-    <button data-v="evolution">Évolution</button>
-    <button data-v="passage">Passage</button>
-  </nav>
-</header>
-
-<main id="main-zone">
-  <section id="v-live" class="on"></section>
-  <section id="v-wod"></section>
-  <section id="v-resultats"></section>
-  <section id="v-parwod"></section>
-  <section id="v-palmares"></section>
-  <section id="v-journees"></section>
-  <section id="v-evolution"></section>
-  <section id="v-passage"></section>
-</main>
-
-<footer>
-  Mise à jour automatique toutes les 20&nbsp;secondes.<br>
-  Classements officiels&nbsp;: tableau d'affichage de la compétition.
-</footer>
-<div id="toast"></div>
+<div id="app"></div>
+<nav aria-label="Navigation principale"><div class="in" id="nav"></div></nav>
 
 <script>
-"use strict";
-/* ============================================================
-   PEARL OF PACIFIC CONTEST — page spectateurs
-   Lit data.json (genere par la macro Excel ExportWeb) et remet
-   en page les 6 ecrans du classeur au format telephone.
-   ============================================================ */
+var JEUX = /*__JEUX__*/null;
+var DEMO = false;
+var VERSION = "2.0 · 09/11/2026";
 
-/* ------------------------------------------------------------------
-   REGLAGES — les deux seules lignes a modifier si besoin.
+/* ------------------------------------------------------------------ etat */
+var D = null;
+var S = { tab:"direct", fiche:null, cat:null, sub:"general", wod:null, wmode:null, q:"", fav:null, demo:"wod4" };
+function lire(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function ecrire(k,v){ try{ if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){} }
+function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function el(id){ return document.getElementById(id); }
 
-   SRC : ou la page va chercher les resultats.
-         "data.json"  = le fichier depose a cote de cette page (par defaut).
-         Pour un affichage plus rapide, on peut mettre l'adresse directe
-         du fichier dans le depot, par exemple :
-         "https://raw.githubusercontent.com/MON-COMPTE/popc-live/main/data.json"
-   PERIODE : delai entre deux mises a jour, en millisecondes.
-   ------------------------------------------------------------------ */
-var SRC      = "data.json";
-var VERSION  = "11 \u00b7 18/10 04h20";   /* visible dans le panneau de diagnostic */
+/* ------------------------------------------------------------ icones */
+var ICO = {
+  direct:'<circle cx="12" cy="12" r="3"/><path d="M5.6 5.6a9 9 0 0 0 0 12.8M18.4 5.6a9 9 0 0 1 0 12.8"/>',
+  classement:'<path d="M5 20V10M12 20V4M19 20v-7"/>',
+  wods:'<path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10"/>',
+  passage:'<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  plus:'<circle cx="5" cy="12" r="1.2"/><circle cx="12" cy="12" r="1.2"/><circle cx="19" cy="12" r="1.2"/>',
+  retour:'<path d="M14.5 5.5L8 12l6.5 6.5"/>',
+  loupe:'<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+  cadenas:'<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>'
+};
+function ico(n,t){ return '<svg aria-hidden="true" width="'+(t||22)+'" height="'+(t||22)+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+ICO[n]+'</svg>'; }
+function etoile(plein,t){ return '<svg class="etoile" aria-hidden="true" width="'+(t||15)+'" height="'+(t||15)+'" viewBox="0 0 24 24" fill="'+(plein?"var(--acc)":"none")+'" stroke="var(--acc)" stroke-width="2" stroke-linejoin="round"><path d="M12 3.5l2.6 5.3 5.9.9-4.2 4.1 1 5.8L12 16.9 6.7 19.6l1-5.8L3.5 9.7l5.9-.9z"/></svg>'; }
 
-/* Seuils d'alerte du panneau, en minutes. Une vague dure de 15 a 21 min
-   selon le WOD : en dessous de SILENCE_NORMAL le silence est le rythme
-   ordinaire, il ne doit donc pas s'afficher comme un probleme. */
-var SILENCE_NORMAL = 25;
-var SILENCE_LONG   = 45;
-var PERIODE  = 20000;        /* pas de base, aligne sur les creneaux de 20 s */
-var PERIODE_CALME = 60000;   /* quand rien ne bouge depuis plusieurs minutes */
+/* ------------------------------------------------------- lecture des donnees */
+function aCats(){ return D.cats && D.cats.length>0; }
+function equipe(nom){ for(var i=0;i<D.equipes.length;i++){ if(D.equipes[i].nom===nom) return D.equipes[i]; } return null; }
+function favori(){ return S.fav ? equipe(S.fav) : null; }
+function catActive(){
+  if(!aCats()) return "";
+  if(S.cat && D.cats.indexOf(S.cat)>=0) return S.cat;
+  var f=favori(); if(f && f.cat) return f.cat;
+  var v=vagueCourante(); if(v && v.cat) return v.cat;
+  return D.cats[0];
+}
+function equipesDe(cat){ return D.equipes.filter(function(e){ return !aCats() || e.cat===cat; }); }
+function apres(cat){ return D.apres[aCats()?cat:""] || 0; }
+function ordinal(n){ return n===1 ? "1re" : n+"e"; }
+function nonFinies(){ return D.vagues.filter(function(v){ return v.statut!=="Terminée" && v.c.join("")!==""; }); }
+function vagueCourante(){ var l=nonFinies(); return l.length?l[0]:null; }
+function jourDe(v){ return D.wods[v.wod-1].jour; }
+function jourEntame(v){ return D.vagues.some(function(x){ return jourDe(x)===jourDe(v) && (x.statut==="Terminée" || x.statut==="En cours"); }); }
+function heure(v){ return (v.prevu?"≈ ":"")+v.heure; }
+function retardDuJour(){ var v=vagueCourante(); if(!v) return 0; return (D.retard && D.retard[String(jourDe(v))]) || 0; }
+function passageDe(nom){
+  var l=nonFinies();
+  for(var i=0;i<l.length;i++){ var k=l[i].c.indexOf(nom); if(k>=0) return { v:l[i], couloir:k+1, avant:i }; }
+  return null;
+}
+function resultats(w,cat){
+  return equipesDe(cat).filter(function(e){ return e.res[w-1]; })
+    .sort(function(a,b){ return a.res[w-1].rang-b.res[w-1].rang || a.nom.localeCompare(b.nom); });
+}
+function general(cat){
+  return equipesDe(cat).filter(function(e){ return e.rang!==null; })
+    .sort(function(a,b){ return a.rang-b.rang || a.nom.localeCompare(b.nom); });
+}
+function wodCourant(){
+  var v=vagueCourante(); if(v) return v.wod;
+  return D.wods.length;
+}
+function etatWod(w,cat){ var e=D.wods[w-1].etat; return e[aCats()?cat:""] || "avenir"; }
+function sousPli(cat){ return aCats() && D.suspense[cat]; }
+/* sous pli : tout WOD joue au-dela du dernier devoile est secret (le fichier ne contient d'ailleurs pas ses resultats) */
+function estSecret(w,cat){ return sousPli(cat) && w>apres(cat) && etatWod(w,cat)!=="avenir"; }
 
-/* --- choix automatique de la source ---------------------------------
-   Sur GitHub Pages, le site est reconstruit a chaque envoi : le fichier
-   data.json servi par le site peut avoir plusieurs minutes de retard.
-   On lit donc directement le fichier du depot (raw.githubusercontent),
-   qui est mis a jour immediatement, en deduisant le compte et le depot
-   de l'adresse de la page. Si cette lecture echoue, on retombe tout
-   seul sur le data.json pose a cote de la page.
-   -------------------------------------------------------------------- */
-var BASE_RAW = "";          /* .../main/  dans le depot, si on est sur github.io */
-var SRC_FIXE = null;        /* source imposee par ?src= */
+/* --------------------------------------------------------- morceaux communs */
+function pos(r){ return '<span class="pos'+(r<=3?" p"+r:"")+'">'+r+'</span>'; }
+function ligneEquipe(e, rang, droite){
+  var moi = S.fav===e.nom;
+  return '<button type="button" class="ligne'+(moi?" moi-l":"")+'" data-equipe="'+esc(e.nom)+'">'+pos(rang)+
+    '<span class="nm">'+esc(e.nom)+'</span>'+(moi?etoile(true):"")+droite+'</button>';
+}
+function segCat(){
+  if(!aCats()) return "";
+  var c=catActive();
+  return '<div class="seg" role="group" aria-label="Catégorie">'+D.cats.map(function(k){
+    return '<button type="button" data-cat="'+k+'" aria-pressed="'+(k===c)+'">'+k+'</button>'; }).join("")+'</div>';
+}
+function selWod(sel){
+  var c=catActive();
+  return '<div class="wsel" role="group" aria-label="Choisir un WOD">'+D.wods.map(function(w){
+    var et=etatWod(w.n,c), autre=aCats()?D.cats.some(function(k){ return etatWod(w.n,k)==="encours"; }):false;
+    var cl=(et==="encours"||autre)?"encours":(et==="avenir"?"avenir":"");
+    return '<button type="button" class="'+cl+'" data-wod="'+w.n+'" aria-pressed="'+(w.n===sel)+'" aria-label="'+esc(w.nom)+'">'+w.n+'</button>';
+  }).join("")+'</div>';
+}
+function bandeauRetard(){
+  var r=retardDuJour(); if(!r) return "";
+  return '<div class="bandeau" role="status">'+ico("passage",18)+'<span>Retard d\'environ '+r+' min · les heures affichées en tiennent compte</span></div>';
+}
+function couloirs(v){
+  return '<div class="couloirs">'+v.c.map(function(n,i){ if(!n) return "";
+    return '<div class="couloir'+(n===S.fav?" moi-c":"")+'"><b>'+(i+1)+'</b><span>'+esc(n)+'</span></div>'; }).join("")+'</div>';
+}
+function titreVague(v){ return esc(v.nom.replace(/ (RX|INTER)$/,""))+(v.cat?' <span class="cat-'+v.cat+'">'+v.cat+'</span>':""); }
+function blocProchain(f){
+  var p=passageDe(f.nom); if(!p) return "";
+  var txt = p.avant===0 ? (jourEntame(p.v)?"C'est votre vague":"Vous ouvrez la journée")
+          : (p.avant===1 ? "Encore 1 vague avant la vôtre" : "Encore "+p.avant+" vagues avant la vôtre");
+  return '<div class="proch"><span class="h">'+heure(p.v)+'</span><span class="x"><b>'+txt+'</b><br><span class="sous">'+
+    esc(D.wods[p.v.wod-1].nom)+' · '+esc(p.v.nom)+' · Couloir '+p.couloir+(p.v.prevu?' · prévu '+p.v.prevu:'')+'</span></span></div>';
+}
+function resumeEquipe(e){
+  var t=[]; if(e.cat) t.push(e.cat);
+  if(e.rang!==null){ t.push(ordinal(e.rang)); t.push(e.total+" pts"); }
+  return t.join(" · ");
+}
 
-(function(){
-  var m = location.hostname.match(/^([^.]+)\.github\.io$/);
-  if(m){
-    var compte = m[1];
-    var seg = location.pathname.split("/").filter(Boolean);
-    var depot = seg.length ? seg[0] : compte + ".github.io";
-    BASE_RAW = "https://raw.githubusercontent.com/"+compte+"/"+depot+"/main/";
+/* ------------------------------------------------------------------ DIRECT */
+function vueDirect(){
+  var h="", f=favori(), v=vagueCourante(), c;
+  h+=bandeauRetard();
+  if(f){
+    h+='<button type="button" class="moi" data-equipe="'+esc(f.nom)+'"><span class="rangee">'+etoile(true,16)+
+       '<span class="et" style="color:var(--acc)">Mon équipe</span><span class="pousse"></span><span class="sous">Voir la fiche ›</span></span>'+
+       '<span class="nom">'+esc(f.nom)+'</span><span class="sous">'+esc(resumeEquipe(f))+'</span>'+blocProchain(f)+'</button>';
+  } else {
+    h+='<button type="button" class="inviter" data-aller="classement">'+etoile(false,20)+'<span>Suivre une équipe<br><span class="sous" style="font-weight:400">Choisissez-la dans le classement : elle sera mise en avant partout.</span></span></button>';
   }
-  var q = location.search.match(/[?&]src=([^&]+)/);
-  if(q) SRC_FIXE = decodeURIComponent(q[1]);
-})();
+  if(v){
+    var enJeu = jourEntame(v), suite = nonFinies().slice(1,3).filter(function(x){ return jourDe(x)===jourDe(v); });
+    h+='<section class="carte"><div class="rangee"><span class="et">'+(enJeu?"Sur le plateau":"Prochaine vague")+'</span><span class="pousse"></span>'+
+       '<span class="pill '+(enJeu?"ok":"att")+'">'+(enJeu?"Départ ":"Jour "+jourDe(v)+" · ")+heure(v)+'</span></div>'+
+       '<div style="font-size:17px;font-weight:700">'+esc(D.wods[v.wod-1].nom)+' · '+titreVague(v)+'</div>'+couloirs(v)+'</section>';
+    if(suite.length){
+      h+='<section class="carte serre"><div class="et" style="padding:12px 12px 0">Ensuite</div>'+suite.map(function(x){ return ligneVague(x,false); }).join("")+'</section>';
+    }
+    c = v.cat || catActive();
+    var w=v.wod, res=resultats(w,c);
+    if(res.length){
+      h+='<section class="carte serre"><div class="rangee" style="padding:12px 12px 6px"><span class="et">'+esc(D.wods[w-1].nom)+' · provisoire</span><span class="pousse"></span>'+
+         '<span class="sous'+(c?' cat-'+c:'')+'" style="font-weight:600">'+(c?c+' · ':'')+res.length+' / '+equipesDe(c).length+' passées</span></div>'+
+         res.slice(0,5).map(function(e){ var r=e.res[w-1]; return ligneEquipe(e,r.rang,'<span class="pf">'+esc(r.perf)+'</span><span class="pt">'+r.pts+'</span>'); }).join("")+
+         '<button type="button" class="lien" data-aller="wods" data-wod="'+w+'">Tous les résultats du WOD ›</button></section>';
+    }
+  } else {
+    h+='<section class="carte"><div class="et">Compétition terminée</div><div class="sous">Merci aux équipes, aux juges et aux bénévoles.</div></section>';
+  }
+  c = catActive();
+  if(apres(c)>0){
+    var g=general(c), tete=g.length?g[0].total:0;
+    h+='<section class="carte serre"><div class="rangee" style="padding:12px 12px 6px"><span class="et">Classement'+(c?' '+c:'')+'</span><span class="pousse"></span><span class="sous">après le WOD '+apres(c)+'</span></div>'+
+       (sousPli(c)?'<div style="padding:0 12px 10px">'+verrou("Le classement final sera annoncé sur le plateau.")+'</div>':"")+
+       g.slice(0,5).map(function(e){ return ligneEquipe(e,e.rang,'<span class="ec">'+(e.total<tete?"−"+(tete-e.total):"")+'</span><span class="pt">'+e.total+'</span>'); }).join("")+
+       '<button type="button" class="lien" data-aller="classement">Classement complet ›</button></section>';
+  }
+  return h;
+}
+function verrou(t){ return '<div class="verrou">'+ico("cadenas",20)+'<span>'+esc(t)+'</span></div>'; }
+function ligneVague(x,finie){
+  var amoi = S.fav && x.c.indexOf(S.fav)>=0;
+  return '<div class="vague'+(finie?" finie":"")+(amoi?" amoi":"")+'"><span class="h">'+heure(x)+'</span><span style="min-width:0"><span class="v">'+titreVague(x)+
+    (finie?' <span class="sous" style="font-weight:400">· terminée</span>':'')+(amoi?' '+etoile(true,13):'')+'</span><br><span class="e">'+
+    esc(x.c.filter(Boolean).join(" · "))+'</span></span></div>';
+}
 
-/* --- creneaux de 20 secondes -----------------------------------------
-   Les hebergeurs de fichiers gardent chaque adresse en cache plusieurs
-   minutes. Excel ecrit donc aussi sous un nom qui change toutes les 20 s
-   (live/s0.json a live/s179.json, un cycle d'une heure) : cette adresse-la
-   n'a pas servi depuis une heure, aucun cache ne la detient, la lecture est
-   donc toujours fraiche. On interroge le creneau courant et ses voisins,
-   ce qui absorbe un ecart d'horloge entre le telephone et le poste de saisie.
-   -------------------------------------------------------------------- */
-function creneau(d){ return d.getMinutes()*3 + Math.floor(d.getSeconds()/20); }
+/* -------------------------------------------------------------- CLASSEMENT */
+function vueClassement(){
+  var c=catActive(), n=apres(c), h="";
+  h+='<div class="rangee" style="align-items:baseline"><h1>Classement général</h1>'+(n?'<span class="sous">après le WOD '+n+'</span>':'')+'</div>';
+  h+=segCat();
+  h+='<div class="seg doux" role="group" aria-label="Affichage"><button type="button" data-sub="general" aria-pressed="'+(S.sub==="general")+'">Points</button>'+
+     '<button type="button" data-sub="evolution" aria-pressed="'+(S.sub==="evolution")+'">Évolution</button></div>';
+  h+='<div class="rech">'+ico("loupe",18)+'<label class="sr" for="rech">Rechercher une équipe</label><input id="rech" type="search" placeholder="Rechercher une équipe" value="'+esc(S.q)+'" autocomplete="off"></div>';
+  if(sousPli(c)) h+=verrou("Classement final gardé secret jusqu'à l'annonce. Voici l'état après le WOD "+n+".");
+  h+='<div id="liste">'+listeClassement()+'</div>';
+  h+='<p class="note">Touchez une équipe pour ouvrir sa fiche et la suivre. Le classement bouge à la fin de chaque WOD.</p>';
+  return h;
+}
+function listeClassement(){
+  var c=catActive(), n=apres(c), q=S.q.trim().toLowerCase();
+  var filtre=function(e){ return !q || e.nom.toLowerCase().indexOf(q)>=0; };
+  if(!n){
+    var tous=equipesDe(c).filter(filtre).sort(function(a,b){ return a.nom.localeCompare(b.nom); });
+    return '<div class="carte serre"><div class="vide">Le classement apparaîtra à la fin du WOD 1.<br>En attendant, voici les équipes engagées.</div>'+
+      tous.map(function(e){ var moi=S.fav===e.nom; return '<button type="button" class="ligne'+(moi?" moi-l":"")+'" data-equipe="'+esc(e.nom)+'"><span class="nm">'+esc(e.nom)+'</span>'+(moi?etoile(true):"")+'</button>'; }).join("")+'</div>';
+  }
+  var g=general(c), tete=g.length?g[0].total:0, l=g.filter(filtre);
+  if(!l.length) return '<div class="carte"><div class="vide">Aucune équipe ne correspond à « '+esc(S.q)+' ».</div></div>';
+  if(S.sub==="evolution"){
+    return '<div class="carte serre">'+l.map(function(e){
+      var ch=e.cumul.slice(0,n), d=n>1?(ch[n-2]-ch[n-1]):0;
+      var fl=d>0?'<span style="color:var(--ok);font-weight:700">▲ '+d+'</span>':(d<0?'<span style="color:var(--warnfg);font-weight:700">▼ '+(-d)+'</span>':'<span class="sous">=</span>');
+      var moi=S.fav===e.nom;
+      return '<button type="button" class="ligne'+(moi?" moi-l":"")+'" data-equipe="'+esc(e.nom)+'" style="padding-block:8px">'+pos(e.rang)+
+        '<span style="flex:1;min-width:0"><span class="nm">'+esc(e.nom)+'</span><br><span class="chips" style="margin-top:4px">'+
+        ch.map(function(x,i){ return '<span class="chip'+(i===n-1?" der":"")+'" style="padding:2px 7px;font-size:12px">'+x+'</span>'; }).join('<span class="sous">›</span>')+'</span></span>'+fl+'</button>';
+    }).join("")+'</div><p class="note">Place au classement après chaque WOD. La flèche compare les deux derniers.</p>';
+  }
+  return '<div class="carte serre">'+l.map(function(e){
+    return ligneEquipe(e,e.rang,'<span class="ec">'+(e.total<tete?"−"+(tete-e.total):"")+'</span><span class="pt">'+e.total+'</span>'); }).join("")+'</div>';
+}
 
+/* ------------------------------------------------------------ FICHE EQUIPE */
+function vueFiche(e){
+  var h="", suivi=S.fav===e.nom, n=apres(e.cat), g=general(e.cat);
+  h+='<div class="rangee"><button type="button" class="retour" data-retour="1" aria-label="Retour">'+ico("retour")+'</button><span class="sous pousse">Fiche équipe</span>'+
+     '<button type="button" class="suivre" data-suivre="'+esc(e.nom)+'" aria-pressed="'+suivi+'">'+etoile(suivi)+(suivi?"Suivie":"Suivre")+'</button></div>';
+  h+='<div><div class="rangee"><h1 style="font-size:28px">'+esc(e.nom)+'</h1>'+(e.cat?'<span class="badge '+e.cat+'">'+e.cat+'</span>':'')+'</div>'+
+     (e.ath.length?'<div class="sous">'+esc(e.ath.join(" · "))+'</div>':'')+'</div>';
+  if(n && e.rang!==null){
+    var devant=null, podium=null;
+    g.forEach(function(x){ if(x.total>e.total && (devant===null || x.total<devant)) devant=x.total; if(x.rang<=3 && (podium===null || x.total<podium)) podium=x.total; });
+    var second=null; g.forEach(function(x){ if(x.nom!==e.nom && (second===null || x.total>second)) second=x.total; });
+    h+='<div class="tuiles"><div class="tuile"><div class="g">'+ordinal(e.rang)+'</div><div class="l">rang'+(e.cat?' '+e.cat:'')+'</div></div>'+
+       '<div class="tuile"><div class="g">'+e.total+'</div><div class="l">points</div></div>'+
+       (devant!==null ? '<div class="tuile"><div class="g">'+(devant-e.total)+'</div><div class="l">pts de la place devant</div></div>'
+                      : '<div class="tuile"><div class="g">+'+(second!==null?e.total-second:0)+'</div><div class="l">pts d\'avance</div></div>')+
+       (e.rang<=3 ? '<div class="tuile"><div class="g" style="color:var(--or)">✓</div><div class="l">sur le podium</div></div>'
+                  : '<div class="tuile"><div class="g">'+(podium-e.total)+'</div><div class="l">pts du podium</div></div>')+'</div>';
+    if(sousPli(e.cat)) h+=verrou("État après le WOD "+n+". Le classement final sera annoncé sur le plateau.");
+  }
+  var p=blocProchain(e); if(p) h+='<div class="moi" style="padding:10px">'+p+'</div>';
+  h+='<section class="carte serre"><div class="rangee" style="padding:12px 12px 6px"><span class="et pousse">WOD par WOD</span><span class="et" style="width:70px;text-align:right">Perf</span><span class="et" style="width:44px;text-align:right">Place</span><span class="et" style="width:40px;text-align:right">Pts</span></div>'+
+     D.wods.map(function(w,i){
+       var r=e.res[i], secret=estSecret(w.n,e.cat);
+       return '<div class="ligne" style="min-height:48px"><span style="flex:1;min-width:0"><span class="nm">'+esc(w.nom)+'</span><br><span class="sous" style="font-size:11px">Jour '+w.jour+' · '+esc(w.type)+'</span></span>'+
+         (r ? '<span class="pf" style="width:70px;text-align:right">'+esc(r.perf)+(r.tc?' <span class="pill tc" style="padding:1px 5px">TC</span>':'')+'</span><span style="width:44px;text-align:right;font-weight:700">'+ordinal(r.rang)+'</span><span class="pt">'+r.pts+'</span>'
+            : '<span class="pf" style="width:154px;text-align:right">'+(secret?"gardé secret":"à venir")+'</span>')+'</div>';
+     }).join("")+'</section>';
+  if(n>1 && e.rang!==null){
+    var ch=e.cumul.slice(0,n), gain=ch[0]-ch[n-1];
+    h+='<section class="carte"><div class="et">Place au général après chaque WOD</div><div class="chips">'+
+       ch.map(function(x,i){ return '<span class="chip'+(i===n-1?" der":"")+'">'+ordinal(x)+'</span>'; }).join('<span class="sous">›</span>')+
+       '<span class="pousse"></span>'+(gain>0?'<span style="color:var(--ok);font-weight:600;font-size:13px">+'+gain+' place'+(gain>1?'s':'')+' depuis la qualif</span>':'')+'</div></section>';
+  }
+  return h;
+}
+
+/* -------------------------------------------------------------------- WODS */
+function vueWods(){
+  var w=S.wod||wodCourant(), wd=D.wods[w-1], c=catActive(), et=etatWod(w,c), res=resultats(w,c);
+  var mode=S.wmode || (res.length?"res":"desc"), h="";
+  h+=selWod(w);
+  h+='<div><div class="rangee" style="align-items:baseline"><h1>'+esc(wd.nom)+'</h1><span class="sous" style="font-weight:700">'+
+     (et==="termine"?"Terminé":(et==="encours"?"En cours":"À venir"))+' · Jour '+wd.jour+'</span></div><div class="sous">'+esc(wd.format[c||"RX"]||"")+'</div></div>';
+  h+='<div class="seg doux" role="group" aria-label="Contenu"><button type="button" data-wmode="desc" aria-pressed="'+(mode==="desc")+'">Descriptif</button>'+
+     '<button type="button" data-wmode="res" aria-pressed="'+(mode==="res")+'">Résultats</button></div>';
+  h+=segCat();
+  if(mode==="desc"){
+    h+='<section class="carte"><div class="desc">'+esc(wd.desc[c||"RX"]||"Descriptif à venir.")+'</div></section>';
+    return h;
+  }
+  if(estSecret(w,c)){ h+=verrou("Résultats de ce WOD gardés secrets : ils seront annoncés sur le plateau."); return h; }
+  var st=wd.stats[c||"RX"];
+  if(st && et==="termine"){
+    h+='<div class="tuiles"><div class="tuile"><div class="g">'+esc(st.best)+'</div><div class="l">meilleure perf'+(c?' '+c:'')+'</div></div>'+
+       '<div class="tuile"><div class="g">'+esc(st.moy)+'</div><div class="l">moyenne</div></div>'+
+       (st.tc!==undefined?'<div class="tuile"><div class="g">'+st.tc+' %</div><div class="l">au time cap</div></div>':'')+'</div>';
+  }
+  if(!res.length){ h+='<div class="carte"><div class="vide">Pas encore de résultat'+(c?' en '+c:'')+' sur ce WOD.</div></div>'; return h; }
+  h+='<section class="carte serre">'+(et!=="termine"?'<div class="rangee" style="padding:10px 12px 4px"><span class="pill ok">Provisoire</span><span class="sous">'+res.length+' / '+equipesDe(c).length+' équipes passées</span></div>':'')+
+     res.map(function(e){ var r=e.res[w-1];
+       return ligneEquipe(e,r.rang,(r.tc?'<span class="pill tc">TC</span>':'')+'<span class="pf">'+esc(r.perf)+'</span><span class="pt">'+r.pts+'</span>'); }).join("")+'</section>';
+  if(w===1 && aCats()) h+='<p class="note">Le WOD 1 classe toutes les équipes ensemble : la place affichée est celle sur l\'ensemble des engagés.</p>';
+  if(res.some(function(e){ return e.res[w-1].tc; })) h+='<p class="note">TC : équipe arrêtée au time cap, chaque répétition manquante compte une seconde.</p>';
+  return h;
+}
+
+/* ----------------------------------------------------------------- PASSAGE */
+function vuePassage(){
+  var w=S.wod||wodCourant(), wd=D.wods[w-1], l=D.vagues.filter(function(v){ return v.wod===w; }), cur=vagueCourante(), h="";
+  h+=selWod(w);
+  h+='<div class="rangee" style="align-items:baseline"><h1>'+esc(wd.nom)+'</h1><span class="sous">Jour '+wd.jour+(wd.ordre?' · '+esc(wd.ordre.toLowerCase()):'')+'</span></div>';
+  if(cur && cur.wod===w) h+=bandeauRetard();
+  var connues=l.filter(function(v){ return v.c.join("")!==""; });
+  if(!connues.length){ h+='<div class="carte"><div class="vide">L\'ordre de passage de ce WOD sera connu '+(w<=3?"à la fin du WOD 1":"à la fin de la première journée")+'.</div></div>'; return h; }
+  var groupe=[], vider=function(){ if(groupe.length){ h+='<section class="carte serre">'+groupe.join("")+'</section>'; groupe=[]; } };
+  connues.forEach(function(v){
+    var finie=v.statut==="Terminée", courante=cur && v===cur && jourEntame(v), amoi=S.fav && v.c.indexOf(S.fav)>=0 && !finie;
+    if(courante || amoi){
+      vider();
+      h+='<section class="carte" style="border:1.5px solid '+(courante?'var(--ok)':'var(--acc)')+(amoi&&!courante?';background:var(--panel2)':'')+'"><div class="rangee"><span class="num" style="font-size:22px;color:'+(courante?'var(--ok)':'var(--acc)')+'">'+heure(v)+'</span>'+
+         '<span style="font-size:15px;font-weight:700">'+titreVague(v)+'</span><span class="pousse"></span>'+
+         (courante?'<span class="pill ok">Sur le plateau</span>':'')+(amoi?etoile(true)+'<span class="et" style="color:var(--acc)">Mon équipe</span>':'')+'</div>'+couloirs(v)+'</section>';
+    } else groupe.push(ligneVague(v,finie));
+  });
+  vider();
+  return h;
+}
+
+/* -------------------------------------------------------------------- PLUS */
+function vuePlus(){
+  var h='<h1>Plus</h1>';
+  h+='<section class="carte serre"><div class="et" style="padding:12px 12px 6px">Programme</div>'+D.wods.map(function(w){
+    var l=D.vagues.filter(function(v){ return v.wod===w.n; }), deb=l.length?l[0]:null;
+    var ets=aCats()?D.cats.map(function(c){ return etatWod(w.n,c); }):[etatWod(w.n,"")];
+    var et=ets.every(function(x){ return x==="termine"; })?"Terminé":(ets.some(function(x){ return x!=="avenir"; })?"En cours":"À venir");
+    return '<button type="button" class="ligne" data-aller="wods" data-wod="'+w.n+'" style="min-height:52px"><span class="num" style="width:74px;flex:none;white-space:nowrap;font-size:18px;color:var(--acc)">'+(deb?heure(deb):"")+'</span>'+
+      '<span style="flex:1;min-width:0"><span class="nm">'+esc(w.nom)+'</span><br><span class="sous" style="font-size:12px">Jour '+w.jour+' · '+esc(w.format.RX||"")+'</span></span>'+
+      '<span class="pill '+(et==="En cours"?"ok":"att")+'">'+et+'</span></button>'; }).join("")+'</section>';
+  if(D.faits && D.faits.length){
+    h+='<section class="carte serre"><div class="et" style="padding:12px 12px 6px">Faits marquants</div>'+D.faits.map(function(f){
+      return '<div class="fait"><span class="sous" style="font-size:12px">'+esc(f.t)+'</span>'+
+        (f.RX?'<span><b class="cat-RX" style="font-size:11px">RX</b> '+esc(f.RX)+'</span>':'')+(f.INTER?'<span><b class="cat-INTER" style="font-size:11px">INTER</b> '+esc(f.INTER)+'</span>':'')+'</div>'; }).join("")+'</section>';
+  } else if(D.suspense.RX || D.suspense.INTER){
+    h+=verrou("Podium et faits marquants : rendez-vous sur le plateau pour l'annonce.");
+  }
+  var f=favori();
+  h+='<section class="carte"><div class="et">Mon équipe</div>'+(f
+    ? '<div class="rangee"><span class="nm pousse" style="font-weight:700">'+esc(f.nom)+'</span><button type="button" class="suivre" data-suivre="'+esc(f.nom)+'" aria-pressed="true">Ne plus suivre</button></div>'
+    : '<div class="sous">Aucune équipe suivie. Ouvrez une fiche depuis le classement et touchez « Suivre ».</div>')+'</section>';
+  h+='<p class="note">'+esc(D.compet.nom)+' · '+esc(D.compet.dates)+'<br>Dernière publication : '+esc(D.maj)+' · page '+VERSION+'</p>';
+  return h;
+}
+
+/* ------------------------------------------------------------------ moteur */
+var ONGLETS=[["direct","Direct"],["classement","Classement"],["wods","WODs"],["passage","Passage"],["plus","Plus"]];
+var VUES={ direct:vueDirect, classement:vueClassement, wods:vueWods, passage:vuePassage, plus:vuePlus };
+function dessiner(){
+  var h="";
+  if(!D){ el("app").innerHTML=attente(); el("nav").innerHTML=""; return; }
+  if(DEMO){
+    h+='<div class="demo"><label for="demo">Version d\'essai, scores fictifs. Moment simulé :</label><select id="demo">'+
+      [["avant","Avant le premier WOD"],["qualif","WOD 1 en cours"],["jour1","Fin de la journée 1"],["wod4","WOD 4 en cours, 15 min de retard"],["souspli","Fin du WOD 6, avant l'annonce"],["final","Après l'annonce"]]
+      .map(function(o){ return '<option value="'+o[0]+'"'+(o[0]===S.demo?" selected":"")+'>'+o[1]+'</option>'; }).join("")+'</select></div>';
+  }
+  h+='<header class="entete"><div class="logo">POPC</div><div class="t"><div class="n">'+esc(D.compet.nom.replace(/\s*\d{4}$/,""))+'</div><div class="d">'+esc(D.compet.dates)+'</div></div>'+
+     '<button type="button" class="maj'+(L.horsLigne?" off":"")+'" data-diag="1" aria-expanded="'+L.ouvert+'" aria-label="État de la mise à jour"><i></i>'+esc(L.horsLigne?"hors ligne · ":"à jour ")+esc(heureMaj(D.maj))+'</button></header>';
+  if(L.ouvert) h+=panneauDiag();
+  var e = S.fiche ? equipe(S.fiche) : null;
+  h += e ? vueFiche(e) : VUES[S.tab]();
+  el("app").innerHTML=h;
+  el("nav").innerHTML=ONGLETS.map(function(o){
+    return '<a href="#'+o[0]+'"'+(o[0]===S.tab && !e?' aria-current="page"':'')+'>'+ico(o[0])+o[1]+'</a>'; }).join("");
+}
+function route(){
+  if(!D){ dessiner(); return; }
+  var hsh=(location.hash||"").replace(/^#/,"");
+  var m=/^equipe-(\d+)$/.exec(hsh);
+  if(m){ var t=D.equipes.filter(function(x){ return String(x.id)===m[1]; })[0]; S.fiche=t?t.nom:null; }
+  else { S.fiche=null; if(VUES[hsh]) S.tab=hsh; }
+  dessiner(); window.scrollTo(0,0);
+}
+function aller(h){ if(("#"+h)===location.hash) route(); else location.hash=h; }
+function charger(cle){
+  S.demo=cle; D=JEUX[cle];
+  if(S.fav && !equipe(S.fav)) S.fav=null;
+  S.wod=null; S.wmode=null;
+}
+document.addEventListener("click",function(ev){
+  var b=ev.target.closest("[data-equipe],[data-cat],[data-sub],[data-wod],[data-wmode],[data-aller],[data-suivre],[data-retour],[data-diag],[data-actualiser]"); if(!b) return;
+  var d=b.dataset;
+  if(d.diag!==undefined){ L.ouvert=!L.ouvert; dessiner(); return; }
+  if(d.actualiser!==undefined){ if(!DEMO) lireSources(true); return; }
+  if(d.suivre!==undefined){ S.fav=(S.fav===d.suivre)?null:d.suivre; ecrire("popc.fav",S.fav); dessiner(); return; }
+  if(d.retour!==undefined){ if(history.length>1) history.back(); else aller(S.tab); return; }
+  if(d.aller!==undefined){ if(d.wod) { S.wod=parseInt(d.wod,10); S.wmode=null; } aller(d.aller); return; }
+  if(d.equipe!==undefined){ var e=equipe(d.equipe); if(e) aller("equipe-"+e.id); return; }
+  if(d.cat!==undefined){ S.cat=d.cat; ecrire("popc.cat",S.cat); dessiner(); return; }
+  if(d.sub!==undefined){ S.sub=d.sub; dessiner(); return; }
+  if(d.wmode!==undefined){ S.wmode=d.wmode; dessiner(); return; }
+  if(d.wod!==undefined){ S.wod=parseInt(d.wod,10); S.wmode=null; dessiner(); return; }
+});
+document.addEventListener("input",function(ev){
+  if(ev.target.id==="rech"){ S.q=ev.target.value; var l=el("liste"); if(l) l.innerHTML=listeClassement(); }
+});
+document.addEventListener("change",function(ev){
+  if(ev.target.id==="demo"){ charger(ev.target.value); ecrire("popc.demo",S.demo); dessiner(); }
+});
+window.addEventListener("hashchange",route);
+/* ============================================================ LECTURE EN LIGNE
+   Excel ecrit le fichier sous un nom qui change toutes les 20 secondes
+   (live/s0.json a live/s179.json). Cette adresse n'a pas servi depuis une
+   heure : aucun cache ne la detient, la lecture est donc toujours fraiche.
+   On interroge le creneau courant et ses voisins, on garde la publication la
+   plus recente, et on ne revient jamais en arriere.
+   Une reponse 404 n'est pas une panne : rien n'a ete publie dans ce creneau. */
+var L = { ouvert:false, horsLigne:false, essais:0, recus:0, dernier:"—", erreur:"", src:"", attenteV1:false };
+var PERIODE = 20000, PERIODE_CALME = 60000, CLE_CACHE = "popc.data2";
+var BASE_RAW = "", SRC_FIXE = null, echecs = 0, cycles = 0, calmes = 0, minuteur = null, vuLe = Date.now();
+
+function instant(maj){
+  var m=String(maj||"").match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  return m ? +(m[3]+m[2]+m[1]+m[4]+m[5]+m[6]) : 0;
+}
+function heureMaj(maj){
+  var m=String(maj||"").match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2})/);
+  if(!m) return String(maj||"").split(" ").pop();
+  var n=new Date(), auj=(n.getDate()===+m[1] && n.getMonth()+1===+m[2] && n.getFullYear()===+m[3]);
+  return (auj?"":m[1]+"/"+m[2]+" ")+m[4]+":"+m[5];
+}
+function ageMinutes(maj){
+  var m=String(maj||"").match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
+  if(!m) return null;
+  return Math.round((Date.now()-new Date(+m[3],+m[2]-1,+m[1],+m[4],+m[5],+m[6]).getTime())/60000);
+}
+function valide(j){ return j && j.v===2 && Array.isArray(j.equipes) && Array.isArray(j.wods) && Array.isArray(j.vagues) && j.compet && j.apres && j.suspense; }
+function attente(){
+  return '<header class="entete"><div class="logo">POPC</div><div class="t"><div class="n">Pearl Of Pacific Contest</div><div class="d">Résultats en direct</div></div></header>'+
+    '<div class="carte"><div class="vide">'+(L.attenteV1?"La page a été mise à jour. En attente de la prochaine publication des résultats…"
+      :(L.erreur?"Connexion impossible pour l'instant. Nouvel essai automatique…":"En attente des premiers résultats…"))+'</div></div>'+
+    '<p class="note">page '+VERSION+'</p>';
+}
+function panneauDiag(){
+  var mn=ageMinutes(D.maj), age=(mn===null||mn<0)?"":(mn<1?" (à l'instant)":(mn<90?" (il y a "+mn+" min)":" (il y a "+Math.round(mn/60)+" h)"));
+  return '<section class="carte diag"><b>Dernière publication reçue</b><div style="font-size:14px">'+esc(D.maj)+esc(age)+'</div>'+
+    (DEMO?'<div>Version d\'essai : données fictives, aucune lecture en ligne.</div>'
+      :'<b>Lectures</b><div>'+L.recus+' réussies sur '+L.essais+' · dernière à '+esc(L.dernier)+'</div>'+
+       (L.erreur?'<b>Dernière erreur</b><div style="color:var(--warnfg)">'+esc(L.erreur)+'</div>':'')+
+       (L.attenteV1?'<div style="color:var(--warnfg)">Un fichier à l\'ancien format a été trouvé : il est ignoré en attendant la prochaine publication.</div>':'')+
+       '<b>Source</b><div>'+esc(String(L.src||"—").split("/").slice(-2).join("/"))+'</div>'+
+       '<button type="button" data-actualiser="1">Actualiser maintenant</button>')+
+    '<div style="color:var(--dim)">Les résultats arrivent à la fin de chaque vague. Entre deux vagues, il est normal que l\'heure ne bouge pas. Page '+esc(VERSION)+'</div></section>';
+}
 function lotsSources(large){
   if(SRC_FIXE) return [[SRC_FIXE]];
   if(!BASE_RAW) return [["data.json"]];
-
-  var s = creneau(new Date()), lots = [];
-  function url(d){ return BASE_RAW + "live/s" + ((((s+d)%180)+180)%180) + ".json"; }
-
-  lots.push(large ? [url(1), url(0), url(-1), url(-2)]  /* ~80 s */
-                  : [url(1), url(0), url(-1)]);        /* ~60 s, suffit pour un cycle de 20 s */
-  if(large){
-    for(var d=-3; d>=-18; d-=4){                        /* jusqu'a ~6 minutes */
-      lots.push([url(d), url(d-1), url(d-2), url(d-3)]);
-    }
-  }
-  lots.push([BASE_RAW + "data.json"]);                  /* filet */
+  var d0=new Date(), s=d0.getMinutes()*3+Math.floor(d0.getSeconds()/20), lots=[];
+  function url(d){ return BASE_RAW+"live/s"+((((s+d)%180)+180)%180)+".json"; }
+  lots.push(large ? [url(1),url(0),url(-1),url(-2)] : [url(1),url(0),url(-1)]);
+  if(large){ for(var d=-3; d>=-18; d-=4) lots.push([url(d),url(d-1),url(d-2),url(d-3)]); }
+  lots.push([BASE_RAW+"data.json"]);
   return lots;
 }
-
-
-var D = null;                 // dernier jeu de donnees valide
-var vue = "live";
-var cat = { live:"RX", resultats:"RX", journees:"RX", evolution:"RX", palmares:"RX",
-            parwod:"RX" };
-/* ecran Evolution : "general" = rang cumule (lignes 8-23 du classeur),
-   "parwod" = place obtenue sur chaque epreuve (lignes 33-48). */
-var lectureEvo = "general";
-var echecs = 0;
-
-/* ---------- acces aux cellules : c(ecran, ligne Excel, colonne Excel) ---------- */
-function c(e,r,col){
-  try{
-    var g = D.ecrans[e];
-    if(!g || !g[r-1]) return "";
-    var v = g[r-1][col-1];
-    return (v===undefined||v===null) ? "" : String(v).trim();
-  }catch(_){ return ""; }
-}
-function esc(s){
-  return String(s).replace(/[&<>"']/g,function(m){
-    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m];
-  });
-}
-function el(id){ return document.getElementById(id); }
-
-/* ---------- briques d'affichage ---------- */
-function carte(titre,corps,petit){
-  if(!corps) return "";
-  return '<div class="card"><h2><span class="accent"></span>'+esc(titre)+
-         (petit?'<small>'+esc(petit)+'</small>':'')+'</h2>'+corps+'</div>';
-}
-function segment(nom,sstRX,sstINT){
-  var a = cat[nom];
-  /* pendant le WOD 1 (qualif) il n'y a pas encore de categories */
-  var qualif = /QUALIF/i.test(sstRX||"") && /QUALIF/i.test(sstINT||"");
-  var l1 = qualif ? "Places 1 à 16" : "RX";
-  var l2 = qualif ? "Places 17 et +" : "INTER";
-  return '<div class="seg" data-seg="'+nom+'">'+
-    '<button data-cat="RX" class="'+(a==="RX"?"on":"")+'">'+l1+'</button>'+
-    '<button data-cat="INTER" class="'+(a==="INTER"?"on":"")+'">'+l2+'</button>'+
-    '</div>'+
-    '<div class="subt">'+esc(a==="RX"?sstRX:sstINT)+'</div>';
-}
-/* vrai si le bloc de lignes rendu est vide */
-function vide(html){ return /class="empty"/.test(html); }
-/* une ligne de classement */
-function ligne(rk,nom,perf,pts,gap){
-  if(!nom) return "";
-  var p = parseInt(rk,10);
-  var cls = (p===1?"p1":p===2?"p2":p===3?"p3":"");
-  var droite = "";
-  if(perf) droite += '<span class="perf">'+esc(perf)+'</span>';
-  if(pts!=="" && pts!==undefined) droite += '<span class="pts">'+esc(pts)+'</span>';
-  if(gap) droite += '<span class="gap">'+esc(gap)+'</span>';
-  return '<div class="row '+cls+'"><div class="rk">'+esc(rk)+'</div>'+
-         '<div class="nm">'+esc(nom)+'</div><div class="rt">'+droite+'</div></div>';
-}
-/* bloc de lignes : cols = [colRang, colNom, colPerf|0, colPts, colSuffixe|0]
-   mode : "ecart" -> affiche "-12" ; "gen" -> affiche "gen. 3" ; sinon brut */
-function tableau(ecran,cols,r1,r2,mode){
-  var h="",n=0;
-  for(var r=(r1||8); r<=(r2||23); r++){
-    var nom = c(ecran,r,cols[1]); if(!nom) continue;
-    var perf = cols[2]? c(ecran,r,cols[2]) : "";
-    var pts  = cols[3]? c(ecran,r,cols[3]) : "";
-    var gap  = cols[4]? c(ecran,r,cols[4]) : "";
-    if(gap){
-      if(mode==="ecart") gap = (gap==="0"||gap==="—") ? "" : "−"+gap;
-      else if(mode==="gen") gap = "gén. "+gap;
-    }
-    h += ligne(c(ecran,r,cols[0]),nom,perf,pts,gap); n++;
-  }
-  return n? '<div class="rows">'+h+'</div>' : '<div class="empty">Pas encore de résultat.</div>';
-}
-/* nettoie un libelle Excel : coupe sur 2 espaces, retire les separateurs isoles */
-function morceaux(txt){
-  return String(txt||"").split(/\s{2,}/)
-    .map(function(s){return s.trim();})
-    .filter(function(s){ return s && !/^[—·\-|]+$/.test(s); });
-}
-/* decoupe "C1  EQUIPE A     C2  EQUIPE B" en couloirs */
-function couloirs(txt){
-  if(!txt) return [];
-  var t = txt.split(/\s{2,}/).map(function(s){return s.trim();}).filter(Boolean);
-  var out=[], i=0;
-  while(i<t.length){
-    if(/^C\d$/i.test(t[i])){ out.push([t[i], t[i+1]||""]); i+=2; }
-    else { out.push(["", t[i]]); i+=1; }
-  }
-  return out;
-}
-/* bloc "libelle / valeur RX / valeur INTER", lignes vides ignorees */
-function blocKV(e,r1,r2){
-  var k="",n=0;
-  for(var r=r1;r<=r2;r++){
-    var lib=c(e,r,12); if(!lib) continue;
-    var vr=c(e,r,14), vi=c(e,r,18);
-    if((!vr||vr==="—") && (!vi||vi==="—")) continue;   // rien a montrer encore
-    k += '<div class="k">'+esc(lib)+'</div>'+
-         '<div class="v rx"><b>RX</b><span>'+esc(vr||"—")+'</span></div>'+
-         '<div class="v it"><b>INTER</b><span>'+esc(vi||"—")+'</span></div>';
-    n++;
-  }
-  return n? '<div class="kv">'+k+'</div>' : "";
-}
-function blocVague(lbl,quand,paires,rang){
-  if(!lbl && !quand) return "";
-  if((!quand || quand==="—") && !paires.length) return "";   // plus rien a venir
-  var l="";
-  for(var i=0;i<paires.length;i++){
-    if(!paires[i][1]) continue;
-    l += '<div class="lane"><b>'+esc(paires[i][0]||("C"+(i+1)))+'</b><span>'+esc(paires[i][1])+'</span></div>';
-  }
-  return '<div class="wave w'+(rang||1)+'"><div class="lbl">'+esc(lbl)+'</div>'+
-         '<div class="when">'+esc(quand||"—")+'</div>'+
-         (l?'<div class="lanes">'+l+'</div>':'')+'</div>';
-}
-
-/* ============================ VUES ============================ */
-
-function vueLive(){
-  var e="live", a=cat.live, h="";
-  var rx = (a==="RX");
-
-  /* 1. resultats du WOD en cours */
-  h += carte(c(e,5,2)||"Résultats",
-        segment("live", c(e,6,2), c(e,6,7)) +
-        (rx ? tableau(e,[2,3,4,5]) : tableau(e,[7,8,9,10])));
-
-  /* 2. classement general */
-  var tg = rx ? tableau(e,[12,13,0,14,15],8,23,"ecart")
-              : tableau(e,[17,18,0,19,20],8,23,"ecart");
-  var sg = rx ? c(e,6,12) : c(e,6,17);
-  if(/suspense/i.test(sg) && !/après/i.test(sg)){
-    tg = '<div class="empty">🔒 Classement général gardé secret&nbsp;: il sera annoncé en direct sur le plateau.</div>';
-  }
-  h += carte(c(e,5,12)||"Classement général",
-        (vide(tg) ? "" : '<div class="subt" style="padding-bottom:4px">'+esc(sg)+'</div>')+tg);
-
-  /* 3. vagues */
-  var v = "";
-  v += blocVague(c(e,25,2),  c(e,26,2),  pairesVague(e,2,3),   1);
-  v += blocVague(c(e,25,12), c(e,26,12), pairesVague(e,12,13), 2);
-  v += blocVague(c(e,25,17), c(e,26,17), pairesVague(e,17,18), 3);
-  h += carte("Vagues", v);
-
-  el("v-live").innerHTML = h + '<div class="note">'+esc(c(e,32,2))+'</div>';
-}
-function pairesVague(e,colLbl,colNom){
-  var out=[];
-  for(var r=27;r<=30;r++){
-    var n=c(e,r,colNom); if(!n) continue;
-    out.push([c(e,r,colLbl),n]);
-  }
-  return out;
-}
-
-function vueWod(){
-  var e="wod", h="";
-  var titre = c(e,5,2);
-  if(!titre){ el("v-wod").innerHTML='<div class="card"><div class="empty">Aucun WOD à venir.</div></div>'; return; }
-  var m = morceaux(titre);                 // ["PROCHAIN WOD","WOD 4","Début 08:00"]
-  var gros = m.length>1 ? m[1] : m[0];     // on met le numero du WOD en gros
-  var petit = m.filter(function(x,i){ return i!==1 || m.length<2; }).join("  ·  ");
-  h += '<div class="card"><div class="wodhead"><div class="t">'+esc(gros)+'</div>'+
-       (petit?'<div class="s">'+esc(petit)+'</div>':'')+'</div>';
-  var drx=c(e,7,2), dit=c(e,7,12);
-  if(drx) h += '<div class="wodbox rx"><div class="cat">'+esc(c(e,6,2)||"RX")+'</div><pre>'+esc(drx)+'</pre></div>';
-  if(dit) h += '<div class="wodbox inter"><div class="cat">'+esc(c(e,6,12)||"INTER")+'</div><pre>'+esc(dit)+'</pre></div>';
-  h += '</div>';
-  el("v-wod").innerHTML = h;
-}
-
-function vueResultats(){
-  var e="resultats", a=cat.resultats, h="";
-  h += carte(c(e,5,2)||"Résultats",
-        segment("resultats", c(e,6,2)||"RX", c(e,6,7)||"INTER") +
-        (a==="RX" ? tableau(e,[2,3,4,5]) : tableau(e,[7,8,9,10])));
-
-  /* en chiffres */
-  h += carte("En chiffres", blocKV(e,8,13));
-
-  /* prochain WOD */
-  var p="";
-  for(var r2=16;r2<=19;r2++){ var t=c(e,r2,12); if(t) p += '<div>'+esc(t)+'</div>'; }
-  if(p) h += carte(c(e,15,12)||"Prochain WOD",'<div class="lines">'+p+'</div>');
-
-  el("v-resultats").innerHTML = h + '<div class="note">'+esc(c(e,25,2))+'</div>';
-}
-
-function vuePalmares(){
-  var e="palmares", a=cat.palmares, h="";
-  /* podiums */
-  h += carte(c(e,5,2)||"Podiums",
-        segment("palmares", c(e,6,2)||"RX", c(e,6,7)||"INTER") +
-        (a==="RX" ? tableau(e,[2,3,4,5],8,10) : tableau(e,[7,8,9,10],8,10)));
-
-  /* faits marquants */
-  h += carte(c(e,5,12)||"Faits marquants", blocKV(e,8,13));
-
-  /* prochains passages */
-  var v="";
-  for(var r2=13;r2<=20;r2++){
-    var q=c(e,r2,2); if(!q) continue;
-    var seg=morceaux(q);                        // ["08:00","WOD 4 · Vague 1 INTER"]
-    v += blocVague(seg[0]||"", seg.slice(1).join("  ·  ")||q, couloirs(c(e,r2,4)), (r2%2?1:2));
-  }
-  if(v) h += carte(c(e,12,2)||"Prochains passages", v);
-
-  el("v-palmares").innerHTML = h;
-}
-
-function vueJournees(){
-  var e="journees", a=cat.journees, h="";
-  var rx=(a==="RX");
-  h += carte(c(e,5,2)||"Jour 1",
-        segment("journees", c(e,6,2), c(e,6,7)) +
-        (rx ? tableau(e,[2,3,0,4,5],8,23,"gen") : tableau(e,[7,8,0,9,10],8,23,"gen")));
-  var j2 = rx ? tableau(e,[12,13,0,14,15],8,23,"gen") : tableau(e,[17,18,0,19,20],8,23,"gen");
-  h += carte(c(e,5,12)||"Jour 2",
-        '<div class="subt" style="padding-bottom:4px">'+esc(rx?c(e,6,12):c(e,6,17))+'</div>'+j2);
-  el("v-journees").innerHTML = h + '<div class="note">'+esc(c(e,25,2))+'</div>';
-}
-
-/* le second tableau existe-t-il dans ce qui a ete publie ? */
-function parWodDispo(){
-  for(var r=33;r<=48;r++){ if(c("evolution",r,3) || c("evolution",r,13)) return true; }
-  return false;
-}
-
-function vueEvolution(){
-  var e="evolution", a=cat.evolution, h="";
-  var rx=(a==="RX");
-  var dispo = parWodDispo();
-  if(!dispo) lectureEvo = "general";
-  var parWod = (lectureEvo === "parwod");
-  /* le tableau "par WOD" est le meme, 25 lignes plus bas, sans colonne +/- */
-  var dec = parWod ? 25 : 0;
-  var cRk=rx?2:12, cNm=rx?3:13, c1=rx?4:14, cD=rx?10:20;
-
-  var corps="",n=0;
-  for(var r=8+dec;r<=23+dec;r++){
-    var nom=c(e,r,cNm); if(!nom) continue;
-    var t="",dernier=-1,places=[];
-    for(var w=0;w<6;w++){ places.push(c(e,r,c1+w)); if(places[w]) dernier=w; }
-    for(var w2=0;w2<6;w2++){
-      if(!places[w2]) continue;
-      if(t) t += '<em>›</em>';
-      t += '<i'+(w2===dernier?' class="last"':'')+'>'+esc(places[w2])+'</i>';
-    }
-    /* la cellule arrive deja mise en forme par Excel ("▲ 2", "▼ 3", "="),
-       mais elle peut aussi arriver en nombre brut : on accepte les deux. */
-    var d=parWod ? "" : String(c(e,r,cD)||"").trim(), dc="e", dt="";
-    if(d){
-      if(d.indexOf("▲")>=0){ dc="u"; dt=d; }
-      else if(d.indexOf("▼")>=0){ dc="d"; dt=d; }
-      else if(d==="="){ dc="e"; dt="="; }
-      else{
-        var dv=parseInt(d.replace(/[^0-9\-]/g,""),10);
-        if(!isNaN(dv)){ dc = dv>0?"u":(dv<0?"d":"e");
-                        dt = dv>0?"▲ "+dv : dv<0?"▼ "+Math.abs(dv) : "="; }
-      }
-    }
-    corps += '<div class="evo"><div class="rk">'+esc(c(e,r,cRk))+'</div>'+
-             '<div><div class="nm">'+esc(nom)+'</div><div class="trk">'+t+'</div></div>'+
-             '<div class="delta '+dc+'">'+esc(dt)+'</div></div>';
-    n++;
-  }
-  /* Sous pli : le classeur vide le tableau et remplace le sous-titre par
-     "Dévoilé après l'annonce officielle". On le dit alors comme sur l'ecran
-     En direct, au lieu de "Pas encore de classement" qui ferait croire a
-     une panne juste apres le WOD 6. */
-  var souspli = /annonce officielle/i.test(rx ? c(e,6,2) : c(e,6,12));
-  if(!n) corps = souspli
-    ? '<div class="empty">🔒 Classement gardé secret&nbsp;: il sera annoncé en direct sur le plateau.</div>'
-    : '<div class="empty">Pas encore de classement.</div>';
-
-  /* la plus forte progression n'a de sens que sur le rang cumule */
-  var best = "";
-  if(!parWod){
-    var bl = rx?c(e,25,2):c(e,25,12), bv = rx?c(e,26,2):c(e,26,12);
-    if(bv && bv!=="—") best = '<div class="best"><div><div class="l">'+esc(bl)+
-                              '</div><div class="v">'+esc(bv)+'</div></div></div>';
-  }
-
-  /* selecteur des deux lectures, affiche seulement si le classeur publie les deux */
-  var bascule = "";
-  if(dispo){
-    bascule = '<div class="lect">'+
-      '<button data-lect="general"'+(parWod?'':' class="on"')+'>Au général</button>'+
-      '<button data-lect="parwod"'+(parWod?' class="on"':'')+'>Par WOD</button>'+
-      '</div><div class="lexp">'+ (parWod
-        ? 'Sa place <b>sur chaque épreuve</b>, prise séparément.'
-        : 'Sa place au classement après chaque WOD, <b>points cumulés</b>.') + '</div>';
-  }
-
-  var titre = parWod ? "Places sur chaque WOD" : "Places après chaque WOD";
-  /* Tableau vide : pas de sous-titre. Sous pli le cadenas dit deja tout, et
-     avant le premier WOD le compteur du classeur peut annoncer un WOD qui
-     n'a pas eu lieu -- sans ligne a afficher, autant ne rien annoncer. */
-  var sstRX = (souspli || !n) ? "" : (parWod ? c(e,31,2)  : c(e,6,2));
-  var sstIN = (souspli || !n) ? "" : (parWod ? c(e,31,12) : c(e,6,12));
-
-  h += carte(titre, bascule + segment("evolution", sstRX, sstIN) + corps + best);
-  var note = parWod
-    ? "Place obtenue sur chaque épreuve terminée, dans la catégorie — sauf le WOD 1, "+
-      "qui classe les 32 équipes ensemble. Le numéro à gauche reste la position au "+
-      "classement général."
-    : c(e,28,2);
-  el("v-evolution").innerHTML = h + '<div class="note">'+esc(note)+'</div>';
-}
-
-/* ---------- ordre de passage ---------- */
-/* 6 blocs empiles dans la feuille : WOD 1 a 6, titre en ligne 4, 15, 26, 37, 48, 59 */
-var P_BLOCS = [4,15,26,37,48,59];
-var wodSel = -1;                       /* -1 = choix automatique */
-
-/* blocs reellement remplis, dans l'ordre */
-function passageBlocs(){
-  var t=[];
-  for(var i=0;i<P_BLOCS.length;i++){
-    var L=P_BLOCS[i], nom=c("passage",L,1);
-    if(!nom) continue;
-    var vagues=0;
-    for(var k=0;k<8;k++){ if(c("passage",L+2+k,1)) vagues++; }
-    if(vagues) t.push({ligne:L, nom:nom, jour:c("passage",L,2),
-                       debut:c("passage",L,3), etat:c("passage",L,4), n:vagues});
-  }
-  return t;
-}
-function passageDispo(){ return passageBlocs().length>0; }
-
-/* "Vague 3 INTER" -> ["Vague 3","INTER"] */
-function coupeVague(nom){
-  var m=String(nom).match(/^(.*?)\s+(RX|INTER)$/i);
-  return m ? [m[1], m[2].toUpperCase()] : [nom, ""];
-}
-
-function vuePassage(){
-  var blocs=passageBlocs();
-  if(!blocs.length){
-    el("v-passage").innerHTML = carte("Ordre de passage",
-      '<div class="empty">L\'ordre de passage n\'est pas encore publié.</div>');
-    return;
-  }
-  /* le WOD choisi, sinon le premier qui n'est pas entierement termine */
-  var idx=-1;
-  for(var i=0;i<blocs.length;i++){ if(blocs[i].ligne===wodSel){ idx=i; break; } }
-  if(idx<0){
-    idx=0;
-    for(var j=0;j<blocs.length;j++){
-      var fini=true, L=blocs[j].ligne;
-      for(var k=0;k<8;k++){
-        var nm=c("passage",L+2+k,1);
-        if(nm && c("passage",L+2+k,3)!=="Terminée"){ fini=false; break; }
-      }
-      if(!fini){ idx=j; break; }
-    }
-  }
-  var B=blocs[idx];
-
-  var onglets='<div class="wsel">';
-  for(var w=0;w<blocs.length;w++){
-    onglets += '<button data-wod="'+blocs[w].ligne+'"'+(w===idx?' class="on"':'')+'>'+
-               esc(blocs[w].nom)+'</button>';
-  }
-  onglets += '</div>';
-
-  var prov=/provisoire/i.test(B.etat);
-  var tete='<div class="pstate">'+
-           (B.debut?'<b>Début '+esc(B.debut)+'</b>':'')+
-           (B.jour?'<span>'+esc(B.jour)+'</span>':'')+
-           (B.etat?'<span class="'+(prov?"prov":"")+'">'+esc(B.etat)+'</span>':'')+
-           '</div>';
-
-  var corps="";
-  for(var k2=0;k2<8;k2++){
-    var r=B.ligne+2+k2, nom=c("passage",r,1);
-    if(!nom) continue;
-    var p=coupeVague(nom), heure=c("passage",r,2), st=c("passage",r,3);
-    var cls = st==="En cours" ? " encours" : (st==="Terminée" ? " finie" : "");
-    var badge = p[1] ? '<span class="b '+(p[1]==="RX"?"rx":"it")+'">'+p[1]+'</span>' : "";
-    var cou="";
-    for(var q=0;q<4;q++){
-      var eq=c("passage",r,4+q);
-      cou += '<div class="cl'+(eq?"":" vide")+'"><span class="n">'+(q+1)+'</span>'+
-             '<span class="e">'+esc(eq||"—")+'</span></div>';
-    }
-    corps += '<div class="vg'+cls+'"><div class="vg-h"><span class="t">'+esc(p[0])+'</span>'+
-             badge+(heure?'<span class="hr">'+esc(heure)+'</span>':"")+
-             (st?'<span class="st">'+esc(st)+'</span>':"")+'</div>'+
-             '<div class="vg-c">'+cou+'</div></div>';
-  }
-
-  el("v-passage").innerHTML =
-    carte("Ordre de passage", onglets+tete+corps) +
-    '<div class="note">Les numéros indiquent le couloir. Les horaires sont indicatifs ' +
-    'et peuvent glisser selon le déroulé de la compétition.</div>';
-}
-
-/* ---------- resultats de chaque WOD ---------- */
-/* feuille "Classement par WOD" : 6 blocs de 21 lignes, titre en 7, 28, 49... */
-var W_BLOCS = [7,28,49,70,91,112];
-var wodRes = -1;                       /* -1 = dernier WOD termine */
-
-/* blocs reellement remplis, dans l'ordre */
-function parwodBlocs(){
-  var t=[];
-  for(var i=0;i<W_BLOCS.length;i++){
-    var L=W_BLOCS[i], nom=c("parwod",L,2);
-    if(!nom) continue;
-    var n=0;
-    for(var k=3;k<=18;k++){ if(c("parwod",L+k,3) || c("parwod",L+k,8)) n++; }
-    if(n) t.push({ligne:L, nom:nom, num:i+1});
-  }
-  return t;
-}
-function parwodDispo(){ return parwodBlocs().length>0; }
-
-function vueParwod(){
-  var blocs=parwodBlocs();
-  if(!blocs.length){
-    el("v-parwod").innerHTML = carte("Résultats par WOD",
-      '<div class="empty">Aucun WOD terminé pour l\'instant.</div>');
-    return;
-  }
-  var idx=blocs.length-1;              /* par defaut le dernier WOD termine */
-  for(var i=0;i<blocs.length;i++){ if(blocs[i].ligne===wodRes) idx=i; }
-  var B=blocs[idx];
-
-  var onglets='<div class="wsel">';
-  for(var w=0;w<blocs.length;w++){
-    onglets += '<button data-wres="'+blocs[w].ligne+'"'+(w===idx?' class="on"':'')+
-               '>WOD '+blocs[w].num+'</button>';
-  }
-  onglets += '</div>';
-
-  /* Le WOD 6 donne les points qui font le classement final : on le garde sous
-     pli tant que l'ecran Evolution annonce que le general n'est pas devoile. */
-  var rx = (cat.parwod === "RX");
-  var souspli = (B.num === 6) &&
-                /annonce officielle/i.test(rx ? c("evolution",6,2) : c("evolution",6,12));
-
-  var corps = souspli
-    ? '<div class="empty">🔒 Résultats du WOD 6 gardés secrets&nbsp;: ils seront '+
-      'annoncés en direct sur le plateau.</div>'
-    : (rx ? tableau("parwod",[2,3,4,5],  B.ligne+3, B.ligne+18)
-          : tableau("parwod",[7,8,9,10], B.ligne+3, B.ligne+18));
-
-  var sstRX = souspli ? "" : c("parwod", B.ligne+1, 2);
-  var sstIN = souspli ? "" : c("parwod", B.ligne+1, 7);
-
-  el("v-parwod").innerHTML =
-    carte(B.nom || ("WOD "+B.num), onglets + segment("parwod", sstRX, sstIN) + corps) +
-    '<div class="note">Classement sur cette épreuve seule, et points gagnés dessus. ' +
-    'Le WOD 1 classe les 32 équipes ensemble ; les suivants séparent RX et INTER.</div>';
-}
-
-/* ============================ MOTEUR ============================ */
-var RENDU = { live:vueLive, wod:vueWod, resultats:vueResultats,
-              palmares:vuePalmares, journees:vueJournees, evolution:vueEvolution,
-              passage:vuePassage, parwod:vueParwod };
-
-function dessiner(){
-  if(!D) return;
-  /* l'onglet n'apparait que si le classeur publie l'ecran correspondant */
-  var bp=document.querySelector('nav button[data-v="passage"]');
-  if(bp){
-    var ok=passageDispo();
-    bp.hidden=!ok;
-    if(!ok && vue==="passage"){ allerA("live"); return; }
-  }
-  var bw=document.querySelector('nav button[data-v="parwod"]');
-  if(bw){
-    var okw=parwodDispo();
-    bw.hidden=!okw;
-    if(!okw && vue==="parwod"){ allerA("live"); return; }
-  }
-  el("hTitre").textContent = D.titre || "PEARL OF PACIFIC CONTEST";
-  el("hDates").textContent = D.dates || "";
-  document.title = (D.titre||"POPC")+" — En direct";
-  try{ RENDU[vue](); }catch(err){
-    el("v-"+vue).innerHTML = '<div class="card"><div class="empty">Affichage momentanément indisponible.</div></div>';
-  }
-}
-
-function majEtat(ok){
-  var dot=el("hDot"), txt=el("hMaj");
-  if(ok){ dot.className="dot"; txt.textContent = D && D.maj ? ("maj "+String(D.maj).slice(-8)) : "en direct"; }
-  else  { dot.className="dot off"; txt.textContent = D ? "hors ligne" : "indisponible"; }
-}
-
-var diag = {src:"", essais:0, recus:0, dernier:"—", derniereMaj:"—", erreur:"",
-            inchange:0, detail:[]};
-
-/* "13/10/2026 13:22:37" -> nombre comparable */
-function instant(maj){
-  var m = String(maj||"").match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
-  if(!m) return 0;
-  return +(m[3]+m[2]+m[1]+m[4]+m[5]+m[6]);
-}
-
 function lireUne(src){
-  var url = src + (src.indexOf("?")<0?"?":"&") + "t=" + Date.now()
-          + "." + Math.random().toString(36).slice(2,8);
-  return fetch(url,{cache:"no-store"})
-    .then(function(r){
-      /* 404 = aucune publication dans ce creneau. Le serveur a repondu :
-         la liaison est bonne, il n'y a simplement rien a cet emplacement. */
+  var url=src+(src.indexOf("?")<0?"?":"&")+"t="+Date.now()+"."+Math.random().toString(36).slice(2,8);
+  return fetch(url,{cache:"no-store"}).then(function(r){
       if(r.status===404){ var v=new Error("rien publié"); v.absent=true; throw v; }
       if(!r.ok) throw new Error("HTTP "+r.status);
       return r.json();
-    })
-    .then(function(j){
-      if(!j || !j.ecrans) throw new Error("fichier illisible");
+    }).then(function(j){
+      if(j && j.ecrans && !j.v){ var a=new Error("ancien format"); a.ancien=true; throw a; }
+      if(!valide(j)) throw new Error("fichier illisible");
       return {src:src, data:j, t:instant(j.maj)};
-    })
-    .catch(function(e){
-      return {src:src, err:(e&&e.message)||"indisponible", absent:!!(e&&e.absent)};
-    });
+    }).catch(function(e){ return {src:src, err:(e&&e.message)||"indisponible", absent:!!(e&&e.absent), ancien:!!(e&&e.ancien)}; });
 }
-
-/* Interroge toutes les sources et retient la plus recente : ni le cache du site
-   ni celui du depot ne peut plus faire reculer l'affichage. */
-var cycles = 0;      /* nombre de lectures de fond depuis le debut */
-var calmes = 0;      /* cycles consecutifs sans nouvelle publication */
-
-function charger(manuel){
-  diag.essais++;
-  var large = manuel || !D;
-  var lots = lotsSources(large), toutes = [];
-
-  if(large){
-    /* Un fichier de creneau se recycle toutes les heures : il peut donc
-       contenir des donnees vieilles d'une heure. En recherche large on lit
-       tout et on garde la version la plus recente, jamais la premiere. */
-    lots.forEach(function(l){ toutes = toutes.concat(l); });
-  } else {
-    /* le fichier principal est garde en cache ~5 min par GitHub : le relire a
-       chaque cycle ne sert a rien. Une fois sur six suffit comme filet. */
-    cycles++;
-    toutes = (cycles % 6 === 0) ? lots[0].concat(lots[lots.length-1]) : lots[0].slice();
-  }
-
+/* redessine sans faire perdre la saisie en cours dans la recherche */
+function redessiner(){
+  var a=document.activeElement, enRecherche=a && a.id==="rech", p=enRecherche?a.selectionStart:0, y=window.scrollY;
+  if(location.hash && /^#equipe-/.test(location.hash)) route(); else dessiner();
+  window.scrollTo(0,y);
+  if(enRecherche){ var r=el("rech"); if(r){ r.focus(); try{ r.setSelectionRange(p,p); }catch(e){} } }
+}
+function lireSources(large){
+  L.essais++;
+  var lots=lotsSources(large || !D), toutes=[];
+  if(large || !D){ lots.forEach(function(l){ toutes=toutes.concat(l); }); }
+  else { cycles++; toutes=(cycles%6===0) ? lots[0].concat(lots[lots.length-1]) : lots[0].slice(); }
   Promise.all(toutes.map(lireUne)).then(function(res){
-    var best = null;
-    diag.interroges = res.length;
-    diag.detail = res.filter(function(r){ return r.data; }).map(function(r){
-      return { src:r.src.split("/").slice(-1)[0].split("?")[0], maj:r.data.maj, err:"" };
-    });
-    if(!diag.detail.length && res.length){
-      diag.detail = [{ src:res[0].src.split("/").slice(-1)[0], maj:null, err:res[0].err||"aucune réponse" }];
-    }
-    for(var i=0;i<res.length;i++){
-      if(res[i].data && (!best || res[i].t > best.t)) best = res[i];
-    }
+    var best=null, avant=L.horsLigne+"|"+L.attenteV1+"|"+L.erreur;
+    function siChange(){ if(L.ouvert || !D || avant!==(L.horsLigne+"|"+L.attenteV1+"|"+L.erreur)) redessiner(); }
+    res.forEach(function(r){ if(r.data && (!best || r.t>best.t)) best=r; });
+    L.dernier=new Date().toLocaleTimeString("fr-FR");
     if(!best){
-      /* Si au moins une adresse a repondu 404, GitHub est joignable : il n'y a
-         simplement pas eu de publication recente. Ce n'est pas une panne. */
-      var joignable = res.some(function(r){ return r.absent; });
-      if(joignable){
-        diag.erreur = ""; echecs = 0; calmes++;
-        diag.recus++; diag.dernier = new Date().toLocaleTimeString("fr-FR");
-        majEtat(true); majDiag();
-        if(!D) el("v-"+vue).innerHTML =
-          '<div class="card"><div class="empty">En attente des premiers résultats…</div></div>';
-        if(manuel) toast(D ? "Déjà à jour" : "Aucun classement publié pour l\'instant");
-        return;
-      }
-      diag.erreur = res[0].err || "indisponible";
-      echecs++; majEtat(false); majDiag();
-      if(typeof planifier === "function") planifier();   /* reprogramme plus loin */
-      if(!D) el("v-"+vue).innerHTML =
-        '<div class="card"><div class="empty">En attente des premiers résultats…</div></div>';
-      if(manuel) toast("Connexion impossible");
-      return;
+      var joignable=res.some(function(r){ return r.absent || r.ancien; });
+      L.attenteV1=!D && res.some(function(r){ return r.ancien; });
+      if(joignable){ L.erreur=""; echecs=0; calmes++; L.recus++; L.horsLigne=false; }
+      else { L.erreur=(res[0] && res[0].err) || "indisponible"; echecs++; L.horsLigne=true; planifier(); }
+      siChange(); return;
     }
-    diag.recus++; diag.erreur = ""; diag.src = best.src;
-    diag.dernier = new Date().toLocaleTimeString("fr-FR");
-    if(D && D.maj === best.data.maj) diag.inchange++; else diag.inchange = 0;
-    diag.derniereMaj = best.data.maj || "—";
-    /* ne jamais revenir en arriere si un cache ressort une vieille copie */
-    var nouveau = !D || instant(best.data.maj) > instant(D.maj);
-    if(!D || instant(best.data.maj) >= instant(D.maj)){
-      D = best.data; dessiner();
-    }
-    echecs=0; majEtat(true); majDiag();
-    calmes = nouveau ? 0 : calmes + 1;
+    L.recus++; L.erreur=""; L.src=best.src; L.horsLigne=false; L.attenteV1=false; echecs=0;
+    var nouveau=!D || best.t>instant(D.maj);
     if(nouveau){
-      var m = el("main-zone"); if(m){ m.classList.remove("maj-flash"); void m.offsetWidth; m.classList.add("maj-flash"); }
-      if(manuel) toast("Classements mis à jour");
-    } else if(manuel){
-      toast("Déjà à jour");
-    }
+      var premier=!D;
+      D=best.data; calmes=0;
+      ecrire(CLE_CACHE, JSON.stringify(D));
+      if(premier) route(); else redessiner();
+      var z=el("app"); if(z){ z.classList.remove("flash"); void z.offsetWidth; z.classList.add("flash"); }
+    } else { calmes++; siChange(); }
   });
 }
-
-/* ---- panneau de diagnostic : appui long ou clic sur l'indicateur ---- */
-/* ecart en minutes entre une date "jj/mm/aaaa hh:mm:ss" et maintenant */
-function ageMinutes(maj){
-  var m = String(maj||"").match(/(\d{2})\/(\d{2})\/(\d{4})\s+(\d{2}):(\d{2}):(\d{2})/);
-  if(!m) return null;
-  var d = new Date(+m[3], +m[2]-1, +m[1], +m[4], +m[5], +m[6]);
-  var mn = Math.round((Date.now() - d.getTime())/60000);
-  return (mn < -5 || mn > 600) ? null : Math.max(0, mn);
-}
-
-function majDiag(){
-  var p = el("diag"); if(!p || p.hidden) return;
-
-  /* age de la donnee affichee */
-  var age = "", cls = "var(--up)", mn = ageMinutes(diag.derniereMaj);
-  if(mn !== null){
-    age = mn < 1 ? "à l'instant" : ("il y a " + mn + " min");
-    if(mn >= SILENCE_NORMAL) cls = "var(--or)";
-    if(mn >= SILENCE_LONG)   cls = "var(--down)";
-  }
-
-  /* d'ou vient la donnee retenue */
-  var via = /^s\d+\.json/.test(String(diag.src).split("/").slice(-1)[0] || "")
-            ? "fichier de créneau (le plus rapide)" : "fichier principal";
-
-  p.innerHTML =
-    '<b>Dernière publication reçue</b>'+
-    '<div class="dv" style="font-size:14px">'+esc(diag.derniereMaj)+
-      (age?' <span style="color:'+cls+'">· '+esc(age)+'</span>':'')+'</div>'+
-    '<b>Reçue par</b><div class="dv">'+esc(via)+'</div>'+
-    '<b>Lectures</b><div class="dv">'+diag.recus+' réussies sur '+diag.essais+
-      '  ·  dernière à '+esc(diag.dernier)+'</div>'+
-    (mn !== null && mn >= SILENCE_NORMAL && !diag.erreur
-      ? '<div class="dh" style="color:var(--or)">Aucune publication depuis '+esc(age)+
-        (mn >= SILENCE_LONG
-          ? '. Une vague dure une vingtaine de minutes : v\u00e9rifiez qu\'une publication '+
-            'n\'a pas \u00e9t\u00e9 oubli\u00e9e.'
-          : '. La liaison avec GitHub est bonne ; le prochain classement s\'affichera '+
-            'd\u00e8s qu\'il sera publi\u00e9.')+'</div>' : '')+
-    (diag.erreur?'<b>Dernière erreur</b><div class="dv" style="color:var(--down)">'+esc(diag.erreur)+'</div>':'')+
-    '<div class="dh">Comparez l\'heure ci-dessus avec la ligne « Dernière publication » '+
-    'du classeur : si les deux correspondent, toute la chaîne fonctionne.</div>'+
-    '<div class="dh" style="opacity:.65">Version de la page : '+esc(VERSION)+'</div>';
-}
-
-
-var tmr;
-function toast(m){
-  var t=el("toast"); t.textContent=m; t.className="on";
-  clearTimeout(tmr); tmr=setTimeout(function(){t.className="";},2200);
-}
-
-/* navigation */
-/* bascule vers un onglet, sans passer par le clic */
-function allerA(nom){
-  vue=nom;
-  [].forEach.call(el("nav").children,function(x){ x.classList.toggle("on",x.dataset.v===nom); });
-  [].forEach.call(document.querySelectorAll("main section"),function(s){
-    s.classList.toggle("on", s.id==="v-"+nom);
-  });
-  dessiner();
-}
-
-el("nav").addEventListener("click",function(ev){
-  var b=ev.target.closest("button"); if(!b) return;
-  allerA(b.dataset.v);
-  window.scrollTo({top:0,behavior:"smooth"});
-});
-
-/* bascule entre les deux lectures de l'ecran Evolution */
-document.addEventListener("click",function(ev){
-  var b=ev.target.closest(".lect button"); if(!b) return;
-  lectureEvo = b.dataset.lect;
-  vueEvolution();
-});
-
-/* choix du WOD dans l'ordre de passage */
-document.addEventListener("click",function(ev){
-  var b=ev.target.closest(".wsel button"); if(!b) return;
-  if(!b.dataset.wod) return;              /* pas le selecteur de l'ordre de passage */
-  wodSel=parseInt(b.dataset.wod,10);
-  vuePassage();
-});
-document.addEventListener("click",function(ev){
-  var b=ev.target.closest(".wsel button"); if(!b) return;
-  if(!b.dataset.wres) return;
-  wodRes=parseInt(b.dataset.wres,10);
-  vueParwod();
-});
-
-/* bascule RX / INTER */
-document.addEventListener("click",function(ev){
-  var b=ev.target.closest(".seg button"); if(!b) return;
-  var nom=b.parentNode.dataset.seg;
-  cat[nom]=b.dataset.cat;
-  dessiner();
-});
-
-/* panneau de diagnostic */
-el("hLive").addEventListener("click",function(){
-  var p=el("diag"); p.hidden=!p.hidden; majDiag();
-});
-
-/* bouton Actualiser : lecture immediate, sans attendre le cycle */
-el("hRefresh").addEventListener("click",function(ev){
-  ev.stopPropagation();
-  this.classList.add("tourne");
-  var b=this;
-  setTimeout(function(){ b.classList.remove("tourne"); }, 700);
-  charger(true);
-});
-
-/* tirer vers le bas pour actualiser (telephone) */
-(function(){
-  var y0=null;
-  document.addEventListener("touchstart",function(e){
-    y0 = (window.scrollY<=0 && e.touches.length===1) ? e.touches[0].clientY : null;
-  },{passive:true});
-  document.addEventListener("touchmove",function(e){
-    if(y0===null) return;
-    if(e.touches[0].clientY - y0 > 70){ y0=null; charger(true); }
-  },{passive:true});
-  document.addEventListener("touchend",function(){ y0=null; },{passive:true});
-})();
-
-/* cycle de vie
-   En veille, le telephone gele les minuteurs : au reveil, la derniere
-   publication peut dater de plusieurs minutes et sortir de la fenetre
-   courte lue en fond. On fait donc une recherche LARGE a chaque retour
-   a l'ecran, et une lecture courte pendant que la page est visible. */
-var vuLe = Date.now();
-
-function reprendre(){
-  if(document.hidden) return;
-  /* absence de plus de 30 s -> recherche large, sinon lecture normale */
-  var large = (Date.now() - vuLe) > 30000;
-  vuLe = Date.now();
-  calmes = 0;                 /* on repart en cadence vive */
-  charger(large);
-  if(typeof planifier === "function") planifier();
-}
-
-/* Cadence adaptative : vif juste apres une publication, econome ensuite.
-   Une vague dure une dizaine de minutes ; inutile d'interroger GitHub
-   toutes les 20 s pendant tout ce temps. Chaque telephone passe ainsi
-   d'environ 1200 a environ 250 requetes par heure. */
 function delaiSuivant(){
-  /* Si GitHub refuse (trop de monde derriere la meme adresse IP), insister
-     au meme rythme ne ferait qu'aggraver les choses : on s'ecarte, puis on
-     revient des que la premiere lecture repasse. */
-  if(echecs > 0) return Math.min(PERIODE * Math.pow(2, Math.min(echecs, 4)), 300000);
-  /* Pendant la competition on reste a cadence fixe : une publication tombe
-     toutes les 15 a 20 min, et le delai doit rester previsible -- 20 s au
-     pire, quel que soit le moment du clic. On ne ralentit qu'apres une
-     demi-heure de silence complet : pause, fin de journee, nuit. */
-  if(calmes < 90) return PERIODE;            /* les 30 premieres minutes */
-  return PERIODE_CALME;                      /* au-dela, 60 s */
+  if(echecs>0) return Math.min(PERIODE*Math.pow(2,Math.min(echecs,4)),300000);
+  return calmes<90 ? PERIODE : PERIODE_CALME;
 }
-
-charger(true);                       /* premier affichage : recherche large */
-var minuteur = null;
 function planifier(){
   if(minuteur) clearTimeout(minuteur);
-  minuteur = setTimeout(function(){
-    if(!document.hidden){ vuLe = Date.now(); charger(false); }
-    planifier();
-  }, delaiSuivant());
+  minuteur=setTimeout(function(){ if(!document.hidden){ vuLe=Date.now(); lireSources(false); } planifier(); }, delaiSuivant());
 }
-planifier();
-document.addEventListener("visibilitychange", reprendre);
-window.addEventListener("focus", reprendre);
-window.addEventListener("pageshow", reprendre);
-window.addEventListener("online", function(){ charger(true); });
+function reprendre(){
+  if(document.hidden) return;
+  var large=(Date.now()-vuLe)>30000; vuLe=Date.now(); calmes=0;
+  lireSources(large); planifier();
+}
+
+(function(){
+  S.fav=lire("popc.fav"); S.cat=lire("popc.cat");
+  if(DEMO){
+    var d=lire("popc.demo"); charger(JEUX[d]?d:"wod4");
+    route(); return;
+  }
+  var m=location.hostname.match(/^([^.]+)\.github\.io$/);
+  if(m){
+    var seg=location.pathname.split("/").filter(Boolean);
+    BASE_RAW="https://raw.githubusercontent.com/"+m[1]+"/"+(seg.length?seg[0]:m[1]+".github.io")+"/main/";
+  }
+  var q=location.search.match(/[?&]src=([^&]+)/); if(q) SRC_FIXE=decodeURIComponent(q[1]);
+  /* dernier etat connu : la page s'affiche tout de suite, meme sans reseau */
+  try{ var c=JSON.parse(lire(CLE_CACHE)||"null"); if(valide(c)){ D=c; L.horsLigne=true; } }catch(e){}
+  route();
+  lireSources(true); planifier();
+  document.addEventListener("visibilitychange", reprendre);
+  window.addEventListener("focus", reprendre);
+  window.addEventListener("pageshow", reprendre);
+  window.addEventListener("online", function(){ lireSources(true); });
+})();
 </script>
+
 </body>
 </html>
